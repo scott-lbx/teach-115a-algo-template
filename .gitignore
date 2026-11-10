@@ -1,0 +1,10 @@
+# 建置輸出
+bin/
+obj/
+.vs/
+
+# Rhino / Grasshopper 備份與暫存
+*.3dmbak
+*.rhl
+*.gh.bak
+*.ghx.bak
