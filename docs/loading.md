@@ -4,13 +4,41 @@
 
 **狀態：已確認，只能用絕對路徑。**
 
-## 實測步驟
+## 實測步驟（自己做一次最小測試）
 
-1. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`。
-2. 在 Rhino 8 開 Grasshopper，放一個 C# Script Component。
-3. 新增輸入 `name`（string）、輸出 `a`。
-4. 貼上 `gh_script\main.cs` 的內容，輸入 `name = "GH"`。
-5. 預期輸出 `Hello, GH`。
+1. 新增 `src/Greeter.cs`：
+
+   ```csharp
+   namespace AlgoDesign
+   {
+       public static class Greeter
+       {
+           public static string Greet(string name) => "Hello, " + name;
+       }
+   }
+   ```
+
+2. 新增樣板 `src/gh_templates/main.cs`：
+
+   ```csharp
+   //@LOADS@
+   // Grasshopper Script Instance
+   using Grasshopper.Kernel;
+   using AlgoDesign;
+
+   public class Script_Instance : GH_ScriptInstance
+   {
+       private void RunScript(string name, ref object a)
+       {
+           a = Greeter.Greet(name);
+       }
+   }
+   ```
+
+3. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`，產生 `gh_script\main.cs`。
+4. 在 Rhino 8 開 Grasshopper，放一個 C# Script Component，新增輸入 `name`（string）、輸出 `a`。
+5. 貼上 `gh_script\main.cs` 的全部內容，輸入 `name = "GH"`，按綠色執行鈕。
+6. 預期輸出 `Hello, GH`。出現 `The type or namespace name 'AlgoDesign' could not be found` 代表 `#load` 沒載入：檢查 `gh_script\main.cs` 開頭的 `#load` 路徑是不是自己電腦上的位置。
 
 ## 結果
 
