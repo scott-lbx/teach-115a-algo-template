@@ -1,8 +1,13 @@
+// Grasshopper Script Instance
 #load "..\src\Cell.cs"
 #load "..\src\Grid.cs"
 #load "..\src\Dijkstra.cs"
 #load "..\src\FieldDisplay.cs"
-// Grasshopper Script Instance
+#load "..\src\Ball.cs"
+#load "..\src\Boid.cs"
+#load "..\src\Flock.cs"
+#load "..\src\ObstacleBuilder.cs"
+#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 3：格子 ＋ Dijkstra 找路
 // 只做接線：建格子、擋障礙、呼叫 Dijkstra、輸出；演算法本體在 src/Dijkstra.cs
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md
@@ -15,16 +20,33 @@ using System.Drawing;
 
 using Rhino;
 using Rhino.Geometry;
-using AlgoDesign;
 
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+
+using AlgoDesign;
 #endregion
 
 public class Script_Instance : GH_ScriptInstance
 {
+    #region Notes
+    /*
+      Members:
+        RhinoDoc RhinoDocument
+        GH_Document GrasshopperDocument
+        IGH_Component Component
+        int Iteration
+
+      Methods (Virtual & overridable):
+        Print(string text)
+        Print(string format, params object[] args)
+        Reflect(object obj)
+        Reflect(object obj, string method_name)
+    */
+    #endregion
+
     private void RunScript(
 		Point3d origin,
 		int width,
