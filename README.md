@@ -24,3 +24,4 @@
 | --- | --- |
 | `1117-path-starter` | 11/17 Dijkstra × Boids starter，說明見 `docs/1117_路徑與Boids.md` |
 | `1117-path-solution` | 同上的參考解答 |
+| `1117-finish` | 完整版：V1～V5 與 Boids 距離場導航 |

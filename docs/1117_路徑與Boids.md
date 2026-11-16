@@ -1,6 +1,6 @@
 # 1117 搜尋與路徑規劃：Dijkstra × Boids
 
-本分支是 11/17 課堂的 starter。今天親手完成 `src/Dijkstra.cs` 裡標 `TODO` 的地方（3-1 到 3-4），不用 AI。
+11/17 課堂用。Part 3 親手完成 `src/Dijkstra.cs` 裡標 `TODO` 的地方（3-1 到 3-4），不用 AI；Part 4、5 的完整版在 `1117-finish`。
 
 ## 分支
 
@@ -8,6 +8,7 @@
 | --- | --- |
 | `1117-path-starter` | 今天的起點：`Dijkstra.cs` 只有骨架與 TODO，其他都能用 |
 | `1117-path-solution` | 參考解答：`Dijkstra.cs` 已完成（卡住時用） |
+| `1117-finish` | 完整版：V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）與 Boids 距離場導航 |
 
 ## 取得今天的 starter
 
@@ -36,6 +37,19 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | `src/ObstacleBuilder.cs` | 障礙曲線轉成實心 Brep，給 Boids 閃避 | 不用 |
 | `gh_script/path_dijkstra.cs` | 元件 1：格子 ＋ Dijkstra | 不用 |
 | `gh_script/path_boids.cs` | 元件 2：Boids 沿路徑飛 | 不用 |
+
+`1117-finish` 另外多了：
+
+| 檔案 | 內容 |
+| --- | --- |
+| `src/CellHeap.cs` | V2 優先佇列（最小堆積）；自己寫，不依賴 .NET 版本 |
+| `src/PathSearch.cs` | V1 8 鄰居、V2 優先佇列、V3 A\*；`SolveAll` 給距離場用 |
+| `src/CostField.cs` | V4 成本場：吸引點、平滑雜訊 |
+| `src/FlowField.cs` | V5 距離場：從終點反向擴散，每格一個往終點的方向 |
+| `src/Grid.cs` | 多了 `Neighbors8`（不切牆角）、`StepCost`（斜向 ×√2）、`MinWalkableCost` |
+| `src/Boid.cs`、`src/Flock.cs` | 多了規則 6 `FollowField` |
+| `gh_script/path_search.cs` | 元件 3：V1～V4，同場景對照基礎版並印出驗證 |
+| `gh_script/field_boids.cs` | 元件 4：V5 ＋ Boids 距離場導航（Part 5 方法 B） |
 
 ## 在 GH 組起來
 
@@ -105,6 +119,65 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | 3-3 | 主迴圈後半 | 第二句：更新它的鄰居 |
 | 3-4 | `BuildPath()` | 從終點沿 `Previous` 走回起點 |
 
-## 之後的變化（Part 4，用 AI，先開 branch）
+## Part 4、5 完整版（`1117-finish`）
 
-V1 8 鄰居 → V2 優先佇列加速（100×100 線性掃描約 1 秒，可以計時比較）→ V3 A\* → V4 成本場 → V5 距離場。每一版都要用上表的基準驗證。
+### 元件 3：`path_search.cs`（V1～V4）
+
+前 7 個輸入和元件 1 相同，後面接：
+
+| 索引 | 名稱 | 型別 | 存取 | 建議值 |
+| --- | --- | --- | --- | --- |
+| 0–6 | origin … goal | 同元件 1 | | |
+| 7 | allowDiagonal | bool | Item | Toggle（V1） |
+| 8 | useAStar | bool | Item | Toggle（V3） |
+| 9 | attractors | Point3d | List | 可不接（V4） |
+| 10 | attractorRadius | double | Item | 8 |
+| 11 | attractorStrength | double | Item | 10 |
+| 12 | noiseScale | double | Item | 8（每幾格一個起伏；0 關掉） |
+| 13 | noiseStrength | double | Item | 0～5（0 關掉） |
+| 14 | seed | int | Item | 0 |
+
+輸出：`path`（進階版路徑）、`field`（距離場）、`costMap`（成本場）、`basicPath`（基礎版路徑，疊在一起比較）。`out` 會印出兩版的成本、定案格數、毫秒，以及 V2、V3 的驗證 ✔／✘。
+
+### 元件 4：`field_boids.cs`（V5 ＋ 方法 B）
+
+| 索引 | 名稱 | 型別 | 存取 | 建議值 |
+| --- | --- | --- | --- | --- |
+| 0 | origin | Point3d | Item | (0,0,0) |
+| 1 | width | int | Item | 40 |
+| 2 | height | int | Item | 40 |
+| 3 | cellSize | double | Item | 1 |
+| 4 | obstacles | Curve | List | 封閉曲線 |
+| 5 | goal | Point3d | Item | 出口位置 |
+| 6 | allowDiagonal | bool | Item | true |
+| 7 | attractors | Point3d | List | 可不接 |
+| 8 | attractorRadius | double | Item | 8 |
+| 9 | attractorStrength | double | Item | 10 |
+| 10 | boidCount | int | Item | 200 |
+| 11 | seed | int | Item | 0 |
+| 12 | maxSpeed | double | Item | 0.3 |
+| 13 | maxForce | double | Item | 0.05 |
+| 14 | viewRadius | double | Item | 3 |
+| 15 | alignmentWeight | double | Item | 0.5 |
+| 16 | cohesionWeight | double | Item | 0.3 |
+| 17 | separationRadius | double | Item | 1 |
+| 18 | separationWeight | double | Item | 1.5 |
+| 19 | avoidRadius | double | Item | 2 |
+| 20 | avoidWeight | double | Item | 3 |
+| 21 | fieldWeight | double | Item | 1.5 |
+| 22 | reset | bool | Item | Button |
+| 23 | run | bool | Item | Boolean Toggle ＋ Timer |
+
+輸出：`points`、`headings`、`arrows`（每格往終點的箭頭）、`field`（距離場上色）。鳥散在整個格子範圍出生，從四面八方匯流到出口。**改了格子、障礙、終點、成本的輸入，要按 `reset` 才會重算距離場。**
+
+### 驗證（out 印出，或對照下表）
+
+| 版 | 驗證方式 |
+| --- | --- |
+| V1 8 鄰居 | 無障礙時成本 ＝ 斜走步數 ×√2 ＋ 直走步數；不會從兩個障礙的牆角縫鑽過去 |
+| V2 優先佇列 | 4 鄰居時成本和基礎版完全相同，速度快很多 |
+| V3 A\* | 成本和同設定的 Dijkstra 相同，定案格數比較少 |
+| V4 成本場 | 路徑繞開高成本區；成本調低時改成直接穿過 |
+| V5 距離場 | 任何一格沿箭頭走都會到終點 |
+
+參考速度（Rhino 外的測試，40×40／100×100）：基礎版 23／861 ms，優先佇列 1.2／6.8 ms，A\* 0.8／3.8 ms。
