@@ -8,7 +8,7 @@
 | --- | --- |
 | `1117-path-starter` | 今天的起點：`Dijkstra.cs` 只有骨架與 TODO，其他都能用 |
 | `1117-path-solution` | 參考解答：`Dijkstra.cs` 已完成（卡住時用） |
-| `1117-finish` | 完整版：V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）與 Boids 距離場導航 |
+| `1117-finish` | 完整版：V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）、球照距離場走，以及課程最後的 Boids |
 
 ## 取得今天的 starter
 
@@ -49,9 +49,11 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | `src/CostField.cs` | V4 成本場：吸引點、平滑雜訊 |
 | `src/FlowField.cs` | V5 距離場：從終點反向擴散，每格一個往終點的方向 |
 | `src/Grid.cs` | 多了 `Neighbors8`（不切牆角）、`StepCost`（斜向 ×√2）、`MinWalkableCost` |
+| `src/Ball.cs` | 多了 `MoveInDirection`：照距離場的箭頭走 |
 | `src/Boid.cs`、`src/Flock.cs` | 多了規則 6 `FollowField` |
-| `gh_script/path_search.cs` | 元件 3：V1～V4，同場景對照基礎版並印出驗證 |
-| `gh_script/field_boids.cs` | 元件 4：V5 ＋ Boids 距離場導航（Part 5 方法 B） |
+| `gh_script/path_search.cs` | Part 4 V1～V4：同場景對照基礎版並印出驗證；`path` 接 `ball_path` 讓球跑 |
+| `gh_script/ball_field.cs` | Part 4 V5：距離場 ＋ 一顆球從任何起點照箭頭走 |
+| `gh_script/field_boids.cs` | Part 5（課程最後）方法 B：Boids 距離場導航 |
 
 ## 在 GH 組起來
 
@@ -136,13 +138,13 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 
 ## Part 4、5 完整版（`1117-finish`）
 
-### 元件 3：`path_search.cs`（V1～V4）
+### Part 4｜`path_search.cs`：V1～V4
 
-前 7 個輸入和元件 1 相同，後面接：
+前 7 個輸入和 `path_dijkstra` 相同，後面接：
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
-| 0–6 | origin … goal | 同元件 1 | | |
+| 0–6 | origin … goal | 同 `path_dijkstra` | | |
 | 7 | allowDiagonal | bool | Item | Toggle（V1） |
 | 8 | useAStar | bool | Item | Toggle（V3） |
 | 9 | attractors | Point3d | List | 可不接（V4） |
@@ -152,9 +154,31 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | 13 | noiseStrength | double | Item | 0～5（0 關掉） |
 | 14 | seed | int | Item | 0 |
 
-輸出：`path`（進階版路徑）、`field`（距離場）、`costMap`（成本場）、`basicPath`（基礎版路徑，疊在一起比較）。`out` 會印出兩版的成本、定案格數、毫秒，以及 V2、V3 的驗證 ✔／✘。
+輸出：`path`（進階版路徑）、`field`（距離場）、`costMap`（成本場）、`basicPath`（基礎版路徑，疊在一起比較）。`out` 會印出兩版的成本、定案格數、毫秒，以及 V2、V3 的驗證 ✔／✘。把 `path` 接到 `ball_path`，每一版都讓球重新跑一次。
 
-### 元件 4：`field_boids.cs`（V5 ＋ 方法 B）
+### Part 4｜`ball_field.cs`：V5 距離場 ＋ 一顆球照箭頭走
+
+| 索引 | 名稱 | 型別 | 存取 | 建議值 |
+| --- | --- | --- | --- | --- |
+| 0 | origin | Point3d | Item | (0,0,0) |
+| 1 | width | int | Item | 40 |
+| 2 | height | int | Item | 40 |
+| 3 | cellSize | double | Item | 1 |
+| 4 | obstacles | Curve | List | 封閉曲線 |
+| 5 | start | Point3d | Item | 球的起點，任何位置都可以 |
+| 6 | goal | Point3d | Item | 出口位置 |
+| 7 | allowDiagonal | bool | Item | true |
+| 8 | attractors | Point3d | List | 可不接 |
+| 9 | attractorRadius | double | Item | 8 |
+| 10 | attractorStrength | double | Item | 10 |
+| 11 | speed | double | Item | 0.3 |
+| 12 | radius | double | Item | 0.5 |
+| 13 | reset | bool | Item | Button |
+| 14 | run | bool | Item | Boolean Toggle ＋ Timer |
+
+輸出：`ball`（Sphere）、`trail`（軌跡）、`arrows`（每格往終點的箭頭）、`field`（距離場上色）。不用事先找路，球放在哪裡都會照箭頭走到終點。**改了格子、障礙、終點、成本或 start，要按 `reset` 才會重算。**
+
+### Part 5（課程最後）｜`field_boids.cs`：Boids 距離場導航（方法 B）
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
@@ -193,6 +217,6 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | V2 優先佇列 | 4 鄰居時成本和基礎版完全相同，速度快很多 |
 | V3 A\* | 成本和同設定的 Dijkstra 相同，定案格數比較少 |
 | V4 成本場 | 路徑繞開高成本區；成本調低時改成直接穿過 |
-| V5 距離場 | 任何一格沿箭頭走都會到終點 |
+| V5 距離場 | 任何一格沿箭頭走都會到終點；球從任何起點放下都會停在終點格 |
 
 參考速度（Rhino 外的測試，40×40／100×100）：基礎版 23／861 ms，優先佇列 1.2／6.8 ms，A\* 0.8／3.8 ms。

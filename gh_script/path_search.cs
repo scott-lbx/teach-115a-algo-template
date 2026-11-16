@@ -6,7 +6,7 @@
 #load "..\src\CostField.cs"
 #load "..\src\FieldDisplay.cs"
 // Grasshopper Script Instance
-// 1117 搜尋與路徑規劃｜元件 3：Part 4 的 V1～V4（8 鄰居、優先佇列、A*、成本場）
+// 1117 搜尋與路徑規劃｜Part 4 V1～V4：8 鄰居、優先佇列、A*、成本場（輸出的 path 可接 ball_path 讓球跑）
 // 同一個場景同時跑「基礎版 Dijkstra」與「進階版 PathSearch」，在 out 印出對照與驗證結果
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md
 #region Usings

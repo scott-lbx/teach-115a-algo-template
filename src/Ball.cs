@@ -46,5 +46,23 @@ namespace AlgoDesign
 
             if (Traveled >= totalLength - 1e-9) IsArrived = true;
         }
+
+        /// <summary>
+        /// V5：照給定的方向走 speed 的長度（方向來自距離場所在格子的箭頭）。
+        /// 方向是零向量（到了終點格，或這格走不到終點）就停下。
+        /// </summary>
+        public void MoveInDirection(Vector3d direction, double speed)
+        {
+            if (IsArrived || speed <= 0) return;
+            if (direction.IsZero)
+            {
+                IsArrived = true;
+                return;
+            }
+
+            Position = Position + direction * (speed / direction.Length);
+            Traveled += speed;
+            Trail.Add(Position);
+        }
     }
 }
