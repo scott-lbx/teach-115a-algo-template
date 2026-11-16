@@ -9,6 +9,7 @@ clone 到新位置、換電腦、src 增減檔案之後，都要重跑一次，
   python tools\gen_gh_scripts.py
 """
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -40,9 +41,31 @@ def load_lines() -> str:
     return "\n".join(f'#load "{files[name]}"' for name in names)
 
 
+def current_branch() -> str:
+    """目前的 git 分支名稱；拿不到時回傳「未知」。"""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "branch", "--show-current"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip() or "未知"
+    except (OSError, subprocess.CalledProcessError):
+        return "未知"
+
+
 def main() -> None:
     """每個含 //@LOADS@ 的樣板，各產生一份貼進 GH 用的檔到 ready。"""
-    loads = load_lines()
+    branch = current_branch()
+    count = len(list(SOURCE.glob("*.cs")))
+
+    # #load 一定放最前面；分支資訊接在後面，切換分支後一眼看出貼的是不是舊版
+    stamp = (
+        f"// 由 tools\\gen_gh_scripts.py 產生：分支 {branch}，"
+        f"src 共 {count} 個檔。切換分支後要重跑並重新貼上"
+    )
+    loads = load_lines() + "\n" + stamp
     OUT.mkdir(exist_ok=True)
 
     # 先清掉舊檔：ready 不進版控，切換分支後會留著別的分支產生的檔
@@ -59,7 +82,7 @@ def main() -> None:
             text.replace(PLACEHOLDER, loads), encoding="utf-8", newline="\r\n"
         )
         print(f"產生 {target.relative_to(ROOT)}")
-    print(f"#load 共 {loads.count(chr(10)) + 1} 行，來源：{SOURCE}")
+    print(f"分支 {branch}：#load 共 {count} 行，來源：{SOURCE}")
 
 
 if __name__ == "__main__":
