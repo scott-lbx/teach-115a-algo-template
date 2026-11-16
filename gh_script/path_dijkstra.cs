@@ -3,7 +3,7 @@
 #load "..\src\Dijkstra.cs"
 #load "..\src\FieldDisplay.cs"
 // Grasshopper Script Instance
-// 1117 搜尋與路徑規劃｜元件 1：格子 ＋ Dijkstra 找路
+// 1117 搜尋與路徑規劃｜Part 3：格子 ＋ Dijkstra 找路
 // 只做接線：建格子、擋障礙、呼叫 Dijkstra、輸出；演算法本體在 src/Dijkstra.cs
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md
 #region Usings
