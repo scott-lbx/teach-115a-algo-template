@@ -73,8 +73,11 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 | 4 | obstacles | Curve | List | Rhino 畫的封閉曲線（可不接） |
 | 5 | start | Point3d | Item | (1,1,0) |
 | 6 | goal | Point3d | Item | (38,38,0) |
+| 7 | reset | bool | Item | Button（從頭開始） |
+| 8 | step | bool | Item | Button：按一下走一次；或 Boolean Toggle ＋ Timer：自己一直走 |
+| 9 | steps | int | Item | 1（每觸發一次定案幾格；格子大時調大） |
 
-輸出：`path`（Polyline）、`field`（上色 Mesh）。`out` 會印出總成本、路徑格數、定案格數、曼哈頓距離。
+輸出：`path`（找到才有的 Polyline）、`field`（距離場上色 Mesh）、`current`（剛定案那格的中心點）、`frontier`（邊界：已經有距離、還沒定案的格子中心點）。`out` 會印出已定案格數、邊界格數、剛定案的格子與距離、狀態（進行中／找到路／找不到路）、曼哈頓距離。格子、障礙、起終點改了會自動從頭開始。
 
 ### Part 3｜`ball_path.cs`：一顆球沿路徑走
 
@@ -130,10 +133,12 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 
 | TODO | 位置 | 對應的一句話 |
 | --- | --- | --- |
-| 3-1 | `Reset()`、`Solve()` 開頭 | 初始化：全部「還走不到」，起點成本 0 |
-| 3-2 | `TryPickNearest()`、主迴圈前半 | 第一句：定案最便宜的 |
-| 3-3 | 主迴圈後半 | 第二句：更新它的鄰居 |
+| 3-1 | `Reset()`、`Begin()` | 初始化：全部「還走不到」，起點成本 0 |
+| 3-2 | `TryPickNearest()`、`Step()` 前半 | 第一句：定案最便宜的 |
+| 3-3 | `Step()` 後半 | 第二句：更新它的鄰居 |
 | 3-4 | `BuildPath()` | 從終點沿 `Previous` 走回起點 |
+
+`Step()` 一次＝兩句話各做一次＝定案一格。`Solve()` 只是 `Begin()` 之後一直 `Step()` 到結束，所以在 GH 按一次 step 看到的，就是迴圈跑一圈。
 
 ## Part 4、5 完整版（`1117-finish`）
 
