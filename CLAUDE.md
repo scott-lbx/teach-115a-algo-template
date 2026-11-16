@@ -7,7 +7,7 @@
 ## 目錄結構
 
 - `src/`：所有程式碼檔案（`.cs`）都放這裡
-- `gh_script/`：要複製貼到 GH Script Component 的檔案；以 `#load` 讀取 `src/` 底下的 `.cs` 檔
+- `gh_script/`：只放要複製貼到 GH Script Component 的檔案，由 `tools/gen_gh_scripts.py` 從 `src/gh_templates/` 產生（`#load` 是本機絕對路徑，不進版控）
 - `docs/`：討論用的 `.md` 檔案
 - `.claude/`：規劃原則（`CODE.md`、`GIT.md`）與 skill
 

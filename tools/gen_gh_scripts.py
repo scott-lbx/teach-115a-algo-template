@@ -1,9 +1,9 @@
-r"""產生 gh_script\ready\*.cs：樣板的 //@LOADS@ 換成 src 每個 .cs 的 #load 絕對路徑。
+r"""產生 gh_script\*.cs：src\gh_templates 的樣板，//@LOADS@ 換成 src 每個 .cs 的 #load 絕對路徑。
 
 GH 的 C# Script 元件，#load 只吃寫死的絕對路徑
 （相對路徑、萬用字元都不行，11/03 boids_game 已在 GH 實測）。
 clone 到新位置、換電腦、src 增減檔案之後，都要重跑一次，
-再把 ready 裡的檔整份貼進 GH。
+再把 gh_script 裡的檔整份貼進 GH。gh_script 只放這些產生的檔，不進版控。
 
 用法
   python tools\gen_gh_scripts.py
@@ -18,8 +18,8 @@ if hasattr(sys.stdout, "reconfigure"):
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src"
-TEMPLATES = ROOT / "gh_script"
-OUT = TEMPLATES / "ready"
+TEMPLATES = SOURCE / "gh_templates"
+OUT = ROOT / "gh_script"
 PLACEHOLDER = "//@LOADS@"
 
 # 有相依的放前面；清單外的檔（各元件的 *Host）依檔名排在最後
@@ -58,7 +58,7 @@ def current_branch() -> str:
 
 
 def main() -> None:
-    """每個含 //@LOADS@ 的樣板，各產生一份貼進 GH 用的檔到 ready。"""
+    """每個含 //@LOADS@ 的樣板，各產生一份貼進 GH 用的檔到 gh_script。"""
     branch = current_branch()
     count = len(list(SOURCE.glob("*.cs")))
 
@@ -70,7 +70,7 @@ def main() -> None:
     loads = load_lines() + "\n" + stamp
     OUT.mkdir(exist_ok=True)
 
-    # 先清掉舊檔：ready 不進版控，切換分支後會留著別的分支產生的檔
+    # 先清掉舊的 .cs（其他檔如 .gh 不動）：gh_script 不進版控，切換分支後會留著別的分支產生的檔
     for old in OUT.glob("*.cs"):
         old.unlink()
 
