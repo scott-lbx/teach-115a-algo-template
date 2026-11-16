@@ -1,6 +1,6 @@
 # teach-115a-algo-template
 
-<!-- hero --><p align="center"><img src="docs/assets/hero.svg" alt="teach-115a-algo-template" width="860"></p>
+<!-- hero --><p align="center"><img src="docs/assets/hero.png" alt="teach-115a-algo-template" width="860"></p>
 
 國立陽明交通大學 115-1「演算法設計」課程的專案範本：在 `src/` 寫演算法類別，用 Grasshopper C# Script 元件載入執行。
 
