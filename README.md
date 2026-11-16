@@ -25,5 +25,5 @@
 
 | 分支 | 說明 |
 | --- | --- |
-| `1117-path-starter` | 11/17 課堂起點：只有資料夾架構，程式在課堂上一起寫；說明見 `docs/1117_路徑與Boids.md` |
+| `1117-path-starter` | 11/17 課堂起點：資料夾架構＋`src/MeshDijkstra.cs`（留 TODO）與 `path_dijkstra` 樣板；說明見 `docs/1117_路徑與Boids.md` |
 | `1117-finish` | 同上的完整版與解答（下課後上傳） |
