@@ -1,17 +1,5 @@
+//@LOADS@
 // Grasshopper Script Instance
-#load "..\src\Cell.cs"
-#load "..\src\Grid.cs"
-#load "..\src\Dijkstra.cs"
-#load "..\src\CellHeap.cs"
-#load "..\src\PathSearch.cs"
-#load "..\src\CostField.cs"
-#load "..\src\FieldDisplay.cs"
-#load "..\src\FlowField.cs"
-#load "..\src\Ball.cs"
-#load "..\src\Boid.cs"
-#load "..\src\Flock.cs"
-#load "..\src\ObstacleBuilder.cs"
-#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 5（課程最後）：Boids 沿路徑飛（Boid、Flock 沿用 11/03，多了規則 5 跟隨路徑）
 // 每次運算只走一步，鳥存在 _flock 裡跨次運算保留；連續跑要外接 Timer
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md

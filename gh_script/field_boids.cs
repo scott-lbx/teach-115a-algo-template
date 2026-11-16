@@ -1,17 +1,5 @@
+//@LOADS@
 // Grasshopper Script Instance
-#load "..\src\Cell.cs"
-#load "..\src\Grid.cs"
-#load "..\src\Dijkstra.cs"
-#load "..\src\CellHeap.cs"
-#load "..\src\PathSearch.cs"
-#load "..\src\CostField.cs"
-#load "..\src\FieldDisplay.cs"
-#load "..\src\FlowField.cs"
-#load "..\src\Ball.cs"
-#load "..\src\Boid.cs"
-#load "..\src\Flock.cs"
-#load "..\src\ObstacleBuilder.cs"
-#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 5（課程最後）方法 B：Boids 距離場導航（V5 ＋ Boids 規則 6）
 // 按 reset 時建格子與距離場並重建鳥（散在整個格子範圍）；之後每次運算只走一步，連續跑要外接 Timer
 // 改了格子、障礙、終點、成本等輸入，要按 reset 才會重算距離場

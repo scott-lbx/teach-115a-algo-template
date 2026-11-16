@@ -7,8 +7,7 @@
 | 分支 | 內容 |
 | --- | --- |
 | `1117-path-starter` | 今天的起點：`Dijkstra.cs` 只有骨架與 TODO，其他都能用 |
-| `1117-path-solution` | 參考解答：`Dijkstra.cs` 已完成（卡住時用） |
-| `1117-finish` | 完整版：V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）、球照距離場走，以及課程最後的 Boids |
+| `1117-finish` | 完整版：Dijkstra 解答、V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）、球照距離場走，以及課程最後的 Boids（下課後才上傳） |
 
 ## 取得今天的 starter
 
@@ -16,14 +15,10 @@
 git switch main
 git pull
 git switch 1117-path-starter
+python tools\gen_gh_scripts.py
 ```
 
-卡住想直接拿解答的 `Dijkstra.cs`（**會蓋掉你自己寫的這個檔**，先 commit 再做）：
-
-```bash
-git fetch
-git checkout origin/1117-path-solution -- src/Dijkstra.cs
-```
+卡住時跟著老師的畫面做；解答在 `1117-finish`，下課後上傳。
 
 ## 檔案
 
@@ -39,6 +34,7 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | `gh_script/path_dijkstra.cs` | Part 3：格子 ＋ Dijkstra 找路 | 不用 |
 | `gh_script/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
 | `gh_script/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
+| `tools/gen_gh_scripts.py` | 產生貼進 GH 用的檔到 `gh_script/ready/` | 不用，執行它 |
 
 `1117-finish` 另外多了：
 
@@ -57,13 +53,14 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 
 ## 在 GH 組起來
 
-1. 新的 .gh 檔**存在 `gh_script/` 資料夾裡**（`#load "..\src\..."` 的相對路徑以這個位置為準）。
-2. 依課程進度放 C# Script 元件，依下表加輸入輸出，把對應的 `gh_script/*.cs` 全部貼進去。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
-3. 在 VS Code 改 `src/` 的檔案、存檔，回 GH 讓元件重新運算。
+GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出現 `The type or namespace name 'AlgoDesign' could not be found`）。所以 `gh_script/*.cs` 是樣板，第一行是 `//@LOADS@`，要先產生自己電腦的版本：
 
-每個 `gh_script/*.cs` 的開頭都和 GH 新建 C# 元件的範本相同：第一行 `// Grasshopper Script Instance`，接著是 `src/` 全部檔案的 `#load`，再來是 `#region Usings`（多一行 `using AlgoDesign;`）與 `Script_Instance` 類別。`src/` 新增檔案時，每個 script 的 `#load` 清單都要一起補上。
+1. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`，產生 `gh_script\ready\*.cs`：`//@LOADS@` 換成 `src\` 每個 `.cs` 的絕對路徑 `#load`。`ready\` 不進版控。
+2. 依課程進度放 C# Script 元件，把 **`gh_script\ready\`** 裡對應的檔整份貼進去（不是貼 `gh_script\` 的樣板），依下表加輸入輸出。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
+3. 在 VS Code 改 `src/` 的檔案、存檔後，回 GH 打開元件編輯器按綠色執行鈕。GH 不會自動重新編譯。
+4. repo 搬位置、換電腦、`src/` 增減檔案之後，重跑步驟 1，再重新貼一次。
 
-> 相對路徑不能用時，把 `#load` 改成絕對路徑，例如 `#load "C:\Users\你\Desktop\115a_algo\src\Grid.cs"`。結果記到 `docs/loading.md`。
+樣板的開頭：`//@LOADS@`，接著和 GH 新建 C# 元件的範本相同：`// Grasshopper Script Instance`、`#region Usings`（多一行 `using AlgoDesign;`）、`Script_Instance` 類別與 `Notes` 區塊。
 
 ### Part 3｜`path_dijkstra.cs`：找路
 

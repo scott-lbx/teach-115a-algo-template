@@ -7,7 +7,8 @@
 | 路徑 | 用途 |
 | --- | --- |
 | `src/` | 所有 `.cs` 程式碼 |
-| `gh_script/` | 貼到 GH Script Component 的檔案，用 `#load` 讀取 `src/` |
+| `gh_script/` | GH Script Component 的樣板（第一行 `//@LOADS@`）；產生的可貼版本在 `gh_script/ready/`（不進版控） |
+| `tools/` | `gen_gh_scripts.py`：產生 `gh_script/ready/`，`#load` 換成本機絕對路徑 |
 | `docs/` | 討論用 `.md` |
 | `.claude/` | 規劃原則（`CODE.md`、`GIT.md`）與 skill |
 | `CLAUDE.md` | Claude 的專案說明與回覆規則 |
@@ -15,13 +16,13 @@
 ## 使用方式
 
 1. 在 `src/` 撰寫演算法類別。
-2. 把 `gh_script/` 內的檔案內容貼到 GH C# Script Component。
-3. `#load` 路徑行為見 `docs/loading.md`（尚待實測）。
+2. 執行 `python tools\gen_gh_scripts.py`。
+3. 把 `gh_script\ready\` 內的檔案內容整份貼到 GH C# Script Component。
+4. GH 的 `#load` 只吃絕對路徑，詳見 `docs/loading.md`。
 
 ## 課堂分支
 
 | 分支 | 說明 |
 | --- | --- |
 | `1117-path-starter` | 11/17 Dijkstra × Boids starter，說明見 `docs/1117_路徑與Boids.md` |
-| `1117-path-solution` | 同上的參考解答 |
-| `1117-finish` | 完整版：V1～V5、球照距離場走、課程最後的 Boids |
+| `1117-finish` | 完整版：Dijkstra 解答、V1～V5、球照距離場走、課程最後的 Boids（下課後上傳） |
