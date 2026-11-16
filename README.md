@@ -16,7 +16,7 @@
 
 ## 使用方式
 
-1. 在 `src/` 撰寫演算法類別。
+1. 在 `src/` 撰寫演算法類別，在 `src/gh_templates/` 寫元件樣板。
 2. 執行 `python tools\gen_gh_scripts.py`。
 3. 把 `gh_script\` 內的檔案內容整份貼到 GH C# Script Component。
 4. GH 的 `#load` 只吃絕對路徑，詳見 `docs/loading.md`。
@@ -25,5 +25,5 @@
 
 | 分支 | 說明 |
 | --- | --- |
-| `1117-path-starter` | 11/17 Dijkstra × Boids starter，說明見 `docs/1117_路徑與Boids.md` |
+| `1117-path-starter` | 11/17 課堂起點：只有資料夾架構，程式在課堂上一起寫；說明見 `docs/1117_路徑與Boids.md` |
 | `1117-finish` | 同上的完整版與解答（下課後上傳） |
