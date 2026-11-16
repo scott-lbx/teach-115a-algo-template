@@ -61,6 +61,8 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 2. 依課程進度放 C# Script 元件，依下表加輸入輸出，把對應的 `gh_script/*.cs` 全部貼進去。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
 3. 在 VS Code 改 `src/` 的檔案、存檔，回 GH 讓元件重新運算。
 
+每個 `gh_script/*.cs` 的開頭都和 GH 新建 C# 元件的範本相同：第一行 `// Grasshopper Script Instance`，接著是 `src/` 全部檔案的 `#load`，再來是 `#region Usings`（多一行 `using AlgoDesign;`）與 `Script_Instance` 類別。`src/` 新增檔案時，每個 script 的 `#load` 清單都要一起補上。
+
 > 相對路徑不能用時，把 `#load` 改成絕對路徑，例如 `#load "C:\Users\你\Desktop\115a_algo\src\Grid.cs"`。結果記到 `docs/loading.md`。
 
 ### Part 3｜`path_dijkstra.cs`：找路

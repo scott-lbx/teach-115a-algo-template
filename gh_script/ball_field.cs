@@ -1,12 +1,17 @@
+// Grasshopper Script Instance
 #load "..\src\Cell.cs"
 #load "..\src\Grid.cs"
+#load "..\src\Dijkstra.cs"
 #load "..\src\CellHeap.cs"
 #load "..\src\PathSearch.cs"
 #load "..\src\CostField.cs"
 #load "..\src\FieldDisplay.cs"
 #load "..\src\FlowField.cs"
 #load "..\src\Ball.cs"
-// Grasshopper Script Instance
+#load "..\src\Boid.cs"
+#load "..\src\Flock.cs"
+#load "..\src\ObstacleBuilder.cs"
+#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 4 V5：距離場 ＋ 一顆球照箭頭走
 // 不用事先找路：球放在任何起點，每步查所在格子的箭頭往前走，最後都會到終點
 // 按 reset 時建格子與距離場、球回到 start；改了格子、障礙、終點、成本的輸入要按 reset 才會重算
@@ -20,16 +25,33 @@ using System.Drawing;
 
 using Rhino;
 using Rhino.Geometry;
-using AlgoDesign;
 
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+
+using AlgoDesign;
 #endregion
 
 public class Script_Instance : GH_ScriptInstance
 {
+    #region Notes
+    /*
+      Members:
+        RhinoDoc RhinoDocument
+        GH_Document GrasshopperDocument
+        IGH_Component Component
+        int Iteration
+
+      Methods (Virtual & overridable):
+        Print(string text)
+        Print(string format, params object[] args)
+        Reflect(object obj)
+        Reflect(object obj, string method_name)
+    */
+    #endregion
+
     // 跨次運算保留：距離場、球、顯示用網格與箭頭
     private FlowField _field;
     private Ball _ball;

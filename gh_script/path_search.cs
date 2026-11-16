@@ -1,3 +1,4 @@
+// Grasshopper Script Instance
 #load "..\src\Cell.cs"
 #load "..\src\Grid.cs"
 #load "..\src\Dijkstra.cs"
@@ -5,7 +6,12 @@
 #load "..\src\PathSearch.cs"
 #load "..\src\CostField.cs"
 #load "..\src\FieldDisplay.cs"
-// Grasshopper Script Instance
+#load "..\src\FlowField.cs"
+#load "..\src\Ball.cs"
+#load "..\src\Boid.cs"
+#load "..\src\Flock.cs"
+#load "..\src\ObstacleBuilder.cs"
+#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 4 V1～V4：8 鄰居、優先佇列、A*、成本場（輸出的 path 可接 ball_path 讓球跑）
 // 同一個場景同時跑「基礎版 Dijkstra」與「進階版 PathSearch」，在 out 印出對照與驗證結果
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md
@@ -14,21 +20,38 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 
 using Rhino;
 using Rhino.Geometry;
-using AlgoDesign;
 
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+
+using System.Diagnostics;
+using AlgoDesign;
 #endregion
 
 public class Script_Instance : GH_ScriptInstance
 {
+    #region Notes
+    /*
+      Members:
+        RhinoDoc RhinoDocument
+        GH_Document GrasshopperDocument
+        IGH_Component Component
+        int Iteration
+
+      Methods (Virtual & overridable):
+        Print(string text)
+        Print(string format, params object[] args)
+        Reflect(object obj)
+        Reflect(object obj, string method_name)
+    */
+    #endregion
+
     private void RunScript(
 		Point3d origin,
 		int width,
