@@ -1,12 +1,12 @@
 # 1117 搜尋與路徑規劃：從一顆球到一群 Boids
 
-本分支是 11/17 課堂的起點：**只有資料夾架構，程式在課堂上一起寫**。Dijkstra 的部分親手寫，不用 AI。
+本分支是 11/17 課堂的起點：**資料夾架構，加上 Dijkstra 找路元件的兩個檔**（`src/MeshDijkstra.cs` 與它的樣板）。`MeshDijkstra.cs` 留 TODO 3-1～3-4，親手寫，不用 AI；球與 Boids 在課堂上再加。
 
 ## 分支
 
 | 分支 | 內容 |
 | --- | --- |
-| `1117-path-starter` | 今天的起點：空的 `src/`、`src/gh_templates/`、`gh_script/`，加上說明文件與產生器 |
+| `1117-path-starter` | 今天的起點：`src/MeshDijkstra.cs`（留 TODO）、`path_dijkstra` 樣板、說明文件與產生器 |
 | `1117-finish` | 完整版：Dijkstra 解答、V1～V5、球照距離場走、課程最後的 Boids（下課後才上傳） |
 
 ## 取得今天的 starter
@@ -23,7 +23,7 @@ git switch 1117-path-starter
 
 | 位置 | 放什麼 | 進版控嗎 |
 | --- | --- | --- |
-| `src/*.cs` | 演算法類別，以及每個 GH 元件的本體 `…Host`（`namespace AlgoDesign`，一檔一類別） | 要 |
+| `src/*.cs` | 演算法類別（`namespace AlgoDesign`，一檔一類別） | 要 |
 | `src/gh_templates/*.cs` | GH script 樣板，第一行 `//@LOADS@`，越精簡越好 | 要 |
 | `gh_script/*.cs` | 產生器產生、整份貼進 GH 元件的檔（`#load` 是本機絕對路徑） | 不要 |
 | `tools/gen_gh_scripts.py` | 由樣板產生 `gh_script/*.cs` | 要 |
@@ -41,7 +41,7 @@ GH 的 `#load` 只吃絕對路徑，相對路徑會什麼都沒載入（詳見 `
 
 ## 樣板的寫法
 
-樣板只負責接線：把輸入交給 `src/` 的 `…Host`，再把結果接到輸出。邏輯都放 `src/`，GH 裡貼的東西就不用常常改。
+樣板只負責接線：建一個 `MeshDijkstra`、觸發一次走一步、把結果接到輸出。演算法都在 `src/MeshDijkstra.cs`。
 
 ```csharp
 //@LOADS@
@@ -52,40 +52,70 @@ using AlgoDesign;
 
 public class Script_Instance : GH_ScriptInstance
 {
-    private readonly PathDijkstraHost _host = new PathDijkstraHost();
+    private MeshDijkstra _dijkstra;   // 跨次運算保留：記住走到哪一步
 
-    private void RunScript(Mesh mesh, Point3d start, Point3d goal, bool reset, bool step, int steps,
-        ref object path, ref object field, ref object current, ref object frontier)
+    private void RunScript(Mesh mesh, Point3d start, Point3d goal, bool reset, bool step,
+        ref object path, ref object visited, ref object current)
     {
-        _host.Run(mesh, start, goal, reset, step, steps);
-        path = _host.Path;
-        field = _host.Field;
-        current = _host.Current;
-        frontier = _host.Frontier;
-        Print(_host.Report);
+        if (mesh == null || mesh.TopologyVertices.Count == 0)
+        {
+            Print("沒接 Mesh");
+            return;
+        }
+
+        if (reset || _dijkstra == null) _dijkstra = new MeshDijkstra(mesh, start, goal);
+        else if (step) _dijkstra.Step();
+
+        path = _dijkstra.Path();
+        visited = _dijkstra.Visited();
+        current = _dijkstra.Current >= 0 ? _dijkstra.PointOf(_dijkstra.Current) : start;
+        Print(_dijkstra.Report());
     }
 }
 ```
 
-`_host` 是欄位，GH 每次重算都會留著，所以可以記住「走到哪一步」。
+`_dijkstra` 是欄位，GH 每次重算都會留著，所以可以記住「走到哪一步」。
 
-## 今天要寫的東西（依序）
+## 元件 `path_dijkstra` 的輸入輸出
 
-| 順序 | 檔案 | 內容 | 課堂段落 |
-| --- | --- | --- | --- |
-| 1 | `src/Edge.cs`、`src/Graph.cs` | 圖：節點用編號 0、1、2…，每個節點有位置與一串邊；邊有 `To`（通到哪）與 `Weight`（花多少） | Part 3 |
-| 2 | `src/MeshGraph.cs` | GH Mesh → 圖：拓樸頂點是節點、Mesh 的邊是邊、權重是邊長 | Part 3 |
-| 3 | `src/Dijkstra.cs` | 三張表 `Distance`、`Previous`、`Done`；`Begin`、`Step`、`Solve`、`BuildPath` | Part 3，親手寫 |
-| 4 | `src/PathDijkstraHost.cs`、`src/gh_templates/path_dijkstra.cs` | 元件本體與樣板：起終點吸到最近的頂點、每觸發一次 `step` 走一步、依距離幫 Mesh 上色 | Part 3 |
-| 5 | `src/Ball.cs`、`src/BallPathHost.cs`、`src/gh_templates/ball_path.cs` | 一顆球沿找到的路走 | Part 3 尾段 |
-| 6 | `src/Boid.cs`、`src/Flock.cs` 與它的 Host、樣板 | 沿用 11/03 的 Boids，加一條「跟隨路徑」規則 | Part 5（課程最後） |
+| 輸入 | 型別 | 接什麼 |
+| --- | --- | --- |
+| mesh | Mesh | GH 的 Mesh Plane（例如 10×10 格）；挖掉的面就是障礙 |
+| start | Point3d | 起點（會吸到最近的頂點） |
+| goal | Point3d | 終點（會吸到最近的頂點） |
+| reset | bool | Button：從頭開始。**換了 Mesh 或起終點要按一次** |
+| step | bool | Button：按一下走一步；或 Boolean Toggle ＋ Timer：自己一直走 |
+
+| 輸出 | 內容 |
+| --- | --- |
+| path | 找到才有的路徑（Polyline） |
+| visited | 已經定案的頂點，看擴散到哪裡 |
+| current | 剛定案的頂點 |
+
+`out` 會印出頂點數、起終點編號、已定案幾個、狀態（進行中／找到路／找不到路）與直線距離。
+
+## 檔案（只有兩個）
+
+| 檔案 | 內容 | 今天要改嗎 |
+| --- | --- | --- |
+| `src/MeshDijkstra.cs` | 全部的演算法：三張表 `Distance`、`Previous`、`Done`；建構子初始化、`Step()` 走一步、`Path()` 回溯 | **要，TODO 3-1 到 3-4** |
+| `src/gh_templates/path_dijkstra.cs` | GH 元件樣板（上面那段） | 不用 |
+
+Mesh 的每個頂點用編號 0、1、2… 表示；鄰居直接問 Mesh：`_mesh.TopologyVertices.ConnectedTopologyVertices(v)`；成本是兩點的距離。不另外建「圖」的類別，也不管效率（每一步都掃過全部頂點）。
+
+## 之後在課堂上加的
+
+| 順序 | 加什麼 | 課堂段落 |
+| --- | --- | --- |
+| 1 | 一顆球沿 `path` 走 | Part 3 尾段 |
+| 2 | 沿用 11/03 的 Boids，加一條「跟隨路徑」規則 | Part 5（課程最後） |
 
 ## Dijkstra 只記兩句話
 
-1. **定案最便宜的**：從還沒定案的節點裡，拿出 `Distance` 最小的，把它定案。
-2. **更新它的鄰居**：沿著它的每條邊，如果「經過它再走過去」比較近，就改寫鄰居的 `Distance`，並記下 `Previous`（從哪來）。
+1. **定案最便宜的**：從還沒定案的頂點裡，拿出 `Distance` 最小的，把它定案。
+2. **更新它的鄰居**：對它的每個鄰居，如果「經過它再走過去」比較近，就改寫鄰居的 `Distance`，並記下 `Previous`（從哪來）。
 
-`Step()` 一次＝兩句話各做一次＝定案一個節點。`Solve()` 只是 `Begin()` 之後一直 `Step()` 到結束。在 GH 每按一次 step，就是迴圈跑一圈，可以看到顏色從起點一步一步往外長。
+`Step()` 一次＝兩句話各做一次＝定案一個頂點。在 GH 每按一次 step 就走一步，`visited` 的點會從起點一圈一圈往外長；接 Toggle ＋ Timer 就會自己一直走到找到終點。
 
 ## 怎麼確認寫對了
 
