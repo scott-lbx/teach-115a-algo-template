@@ -33,17 +33,18 @@ python tools\gen_gh_scripts.py
 | `src/Boid.cs`、`src/Flock.cs` | 沿用 11/03 的 Boids，多了規則 5「跟隨路徑」 | 不用（課程最後老師展示） |
 | `src/ObstacleBuilder.cs` | 障礙曲線轉成實心 Brep，給 Boids 閃避 | 不用 |
 | `src/*Host.cs` | 每個 GH 元件的本體（狀態、輸出、`out` 文字），GH script 只把輸入輸出接過來 | 不用 |
-| `gh_script/path_dijkstra.cs` | Part 3：Mesh → 圖 → Dijkstra 找路 | 不用 |
-| `gh_script/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
-| `gh_script/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
-| `tools/gen_gh_scripts.py` | 產生貼進 GH 用的檔到 `gh_script/ready/` | 不用，執行它 |
+| `src/gh_templates/path_dijkstra.cs` | Part 3：Mesh → 圖 → Dijkstra 找路 | 不用 |
+| `src/gh_templates/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
+| `src/gh_templates/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
+| `tools/gen_gh_scripts.py` | 由樣板產生貼進 GH 用的檔到 `gh_script/` | 不用，執行它 |
+| `gh_script/*.cs` | 產生出來、整份貼進 GH 元件的檔（不進版控） | 不用，貼它 |
 
 ## 在 GH 組起來
 
-GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出現 `The type or namespace name 'AlgoDesign' could not be found`）。所以 `gh_script/*.cs` 是樣板，第一行是 `//@LOADS@`，要先產生自己電腦的版本：
+GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出現 `The type or namespace name 'AlgoDesign' could not be found`）。所以樣板放在 `src/gh_templates/`，第一行是 `//@LOADS@`，要先產生自己電腦的版本到 `gh_script/`：
 
-1. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`，產生 `gh_script\ready\*.cs`：`//@LOADS@` 換成 `src\` 每個 `.cs` 的絕對路徑 `#load`。`ready\` 不進版控。
-2. 依課程進度放 C# Script 元件，把 **`gh_script\ready\`** 裡對應的檔整份貼進去（不是貼 `gh_script\` 的樣板），依下表加輸入輸出。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
+1. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`，產生 `gh_script\*.cs`：`//@LOADS@` 換成 `src\` 每個 `.cs` 的絕對路徑 `#load`。`gh_script\` 的 `.cs` 不進版控。
+2. 依課程進度放 C# Script 元件，把 **`gh_script\`** 裡對應的檔整份貼進去（不是貼 `src\gh_templates\` 的樣板），依下表加輸入輸出。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
 3. 在 VS Code 改 `src/` 的檔案、存檔後，回 GH 打開元件編輯器按綠色執行鈕。GH 不會自動重新編譯。
 4. repo 搬位置、換電腦、`src/` 增減檔案之後，重跑步驟 1，再重新貼一次。
 

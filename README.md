@@ -7,8 +7,9 @@
 | 路徑 | 用途 |
 | --- | --- |
 | `src/` | 所有 `.cs` 程式碼 |
-| `gh_script/` | GH Script Component 的樣板（第一行 `//@LOADS@`）；產生的可貼版本在 `gh_script/ready/`（不進版控） |
-| `tools/` | `gen_gh_scripts.py`：產生 `gh_script/ready/`，`#load` 換成本機絕對路徑 |
+| `src/` 底下的 `gh_templates/` | GH Script Component 的樣板（第一行 `//@LOADS@`） |
+| `gh_script/` | 只放貼進 GH Script Component 的檔：由樣板產生，`#load` 是本機絕對路徑（不進版控） |
+| `tools/` | `gen_gh_scripts.py`：由 `src/gh_templates/` 產生 `gh_script/*.cs`，`#load` 換成本機絕對路徑 |
 | `docs/` | 討論用 `.md` |
 | `.claude/` | 規劃原則（`CODE.md`、`GIT.md`）與 skill |
 | `CLAUDE.md` | Claude 的專案說明與回覆規則 |
@@ -17,7 +18,7 @@
 
 1. 在 `src/` 撰寫演算法類別。
 2. 執行 `python tools\gen_gh_scripts.py`。
-3. 把 `gh_script\ready\` 內的檔案內容整份貼到 GH C# Script Component。
+3. 把 `gh_script\` 內的檔案內容整份貼到 GH C# Script Component。
 4. GH 的 `#load` 只吃絕對路徑，詳見 `docs/loading.md`。
 
 ## 課堂分支

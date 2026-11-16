@@ -9,7 +9,7 @@
 1. 在 repo 根目錄執行 `python tools\gen_gh_scripts.py`。
 2. 在 Rhino 8 開 Grasshopper，放一個 C# Script Component。
 3. 新增輸入 `name`（string）、輸出 `a`。
-4. 貼上 `gh_script\ready\main.cs` 的內容，輸入 `name = "GH"`。
+4. 貼上 `gh_script\main.cs` 的內容，輸入 `name = "GH"`。
 5. 預期輸出 `Hello, GH`。
 
 ## 結果
@@ -23,4 +23,4 @@
 
 ## 結論
 
-`gh_script/*.cs` 只當樣板，第一行放 `//@LOADS@`。`tools/gen_gh_scripts.py` 把它換成 `src/` 每個 `.cs` 的絕對路徑 `#load`，輸出到 `gh_script/ready/`（不進版控），把 `ready/` 的檔貼進 GH。
+樣板放在 `src/gh_templates/`，第一行是 `//@LOADS@`。`tools/gen_gh_scripts.py` 把它換成 `src/` 每個 `.cs` 的絕對路徑 `#load`，輸出到 `gh_script/`（不進版控），把 `gh_script/` 的檔貼進 GH。

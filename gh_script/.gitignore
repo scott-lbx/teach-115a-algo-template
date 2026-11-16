@@ -1,2 +1,3 @@
-# tools/gen_gh_scripts.py 產生的檔，內含本機絕對路徑，不提交
-ready/
+# 這裡只放貼進 GH C# Script 元件的檔：tools/gen_gh_scripts.py 由 src/gh_templates 產生，
+# 內含本機絕對路徑，不提交
+*.cs
