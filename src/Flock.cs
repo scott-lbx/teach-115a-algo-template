@@ -43,12 +43,14 @@ namespace AlgoDesign
         }
 
         // 單次迭代：先全部算好加速度，再全部一起套用
-        // 最後四個參數是 1117 新增的「跟隨路徑」；不給 path 時和 11/03 版完全相同
+        // 1117 新增的選用參數：path 系列是規則 5「跟隨路徑」、field 系列是規則 6「距離場導航」
+        // 都不給時和 11/03 版完全相同
         public void Step(Point3d min, Point3d max, double maxSpeed, double maxForce,
             double viewRadius, double alignmentWeight,
             double cohesionWeight, double separationRadius, double separationWeight,
             List<Brep> obstacles, double avoidRadius, double avoidWeight,
-            Curve path = null, double followWeight = 0.0, double lookAhead = 5.0, double pathRadius = 2.0)
+            Curve path = null, double followWeight = 0.0, double lookAhead = 5.0, double pathRadius = 2.0,
+            FlowField field = null, double fieldWeight = 0.0)
         {
             // 算
             foreach (Boid boid in Boids)
@@ -65,6 +67,10 @@ namespace AlgoDesign
                 if (path != null)
                 {
                     acceleration += boid.FollowPath(path, lookAhead, pathRadius) * followWeight;
+                }
+                if (field != null)
+                {
+                    acceleration += boid.FollowField(field) * fieldWeight;
                 }
                 boid.Acceleration = acceleration;
             }

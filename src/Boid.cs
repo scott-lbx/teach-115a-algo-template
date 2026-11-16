@@ -217,6 +217,14 @@ namespace AlgoDesign
             return Steer(path.PointAt(targetT) - Position);
         }
 
+        // 規則 6：距離場導航（1117 新增，V5）
+        //   查自己所在格子往終點的方向，當成想要的方向；終點格與走不到的格子方向是 0，不出力
+        public Vector3d FollowField(FlowField field)
+        {
+            if (field == null) return Vector3d.Zero;
+            return Steer(field.DirectionAt(Position));
+        }
+
         // 轉向力 ＝ 期望速度 − 目前速度，長度限制在 MaxForce
         public Vector3d Steer(Vector3d desired)
         {
