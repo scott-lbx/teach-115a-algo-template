@@ -5,11 +5,13 @@ namespace AlgoDesign
     /// <summary>
     /// 最基礎的 Dijkstra：4 鄰居，每次掃過全部格子找最近的那一格（不用優先佇列）。
     /// 只記兩句話：定案最便宜的，更新它的鄰居。
+    /// 可以一次解完（Solve），也可以一步一步走（Begin 之後每呼叫一次 Step 定案一格）。
     /// 今天要親手完成標 TODO 的地方（3-1 到 3-4），不用 AI。
     /// </summary>
     public class Dijkstra
     {
         private readonly Grid _grid;
+        private Cell _goal = Cell.None;
 
         /// <summary>從起點走到每一格的最小成本；還走不到的是 double.MaxValue。</summary>
         public double[,] Distance { get; }
@@ -23,6 +25,15 @@ namespace AlgoDesign
         /// <summary>總共定案了幾格（之後拿來和 A* 比較誰找得比較少）。</summary>
         public int DoneCount { get; private set; }
 
+        /// <summary>最近一次 Step 定案的格子；還沒走過是 Cell.None。</summary>
+        public Cell Current { get; private set; } = Cell.None;
+
+        /// <summary>結束了沒：終點已定案，或剩下的格子都走不到。</summary>
+        public bool IsFinished { get; private set; }
+
+        /// <summary>找到路了沒（終點已定案）。</summary>
+        public bool IsFound { get; private set; }
+
         public Dijkstra(Grid grid)
         {
             _grid = grid;
@@ -31,34 +42,62 @@ namespace AlgoDesign
             Done = new bool[grid.Width, grid.Height];
         }
 
-        /// <summary>從 start 開始擴散，直到 goal 定案。走得到回傳 true。</summary>
+        /// <summary>一次解完：Begin 之後一直 Step 到結束。走得到回傳 true。（不用改）</summary>
         public bool Solve(Cell start, Cell goal)
         {
+            Begin(start, goal);
+            while (Step())
+            {
+            }
+            return IsFound;
+        }
+
+        /// <summary>準備開始：清空三張表，起點的成本設 0。之後每呼叫一次 Step 走一步。</summary>
+        public void Begin(Cell start, Cell goal)
+        {
             Reset();
-            if (!_grid.IsWalkable(start) || !_grid.IsWalkable(goal)) return false;
+            _goal = goal;
+            if (!_grid.IsWalkable(start) || !_grid.IsWalkable(goal))
+            {
+                IsFinished = true;
+                return;
+            }
 
             // TODO 3-1：起點的 Distance 設成 0
+        }
 
-            // TODO 3-2、3-3：主迴圈（把下面的註解改成程式）
-            // while (TryPickNearest(out Cell current))
-            // {
-            //     第一句：定案 current → Done 設 true、DoneCount 加 1
-            //     current 就是 goal → return true
-            //
-            //     第二句：更新鄰居 → 對 _grid.Neighbors4(current) 的每一格 next：
-            //         next 已定案就跳過
-            //         newDistance = current 的 Distance ＋ next 的 Cost
-            //         newDistance 比 next 現在的 Distance 小 →
-            //             改寫 next 的 Distance，並記下 next 的 Previous = current
-            // }
+        /// <summary>
+        /// 走一步＝兩句話各做一次：定案最便宜的一格，再更新它的鄰居。
+        /// 還能繼續回傳 true；找到終點或沒有格子可以定案了，回傳 false。
+        /// </summary>
+        public bool Step()
+        {
+            if (IsFinished) return false;
 
+            // TODO 3-2 第一句：定案最便宜的（把下面的註解改成程式）
+            // TryPickNearest(out Cell current) 找不到 → IsFinished = true，return false
+            // 定案 current → Done 設 true、DoneCount 加 1、Current = current
+            // current 就是 _goal → IsFound = true、IsFinished = true，return false
+
+            // TODO 3-3 第二句：更新它的鄰居
+            // 對 _grid.Neighbors4(current) 的每一格 next：
+            //     next 已定案就跳過
+            //     newDistance = current 的 Distance ＋ next 的 Cost
+            //     newDistance 比 next 現在的 Distance 小 →
+            //         改寫 next 的 Distance，並記下 next 的 Previous = current
+
+            // TODO 寫完 3-2、3-3 後，把下面兩行換成 return true;
+            IsFinished = true;
             return false;
         }
 
-        /// <summary>每次 Solve 前清空：Distance 全設 double.MaxValue、Previous 全設 Cell.None、Done 全設 false。</summary>
+        /// <summary>每次 Begin 前清空：Distance 全設 double.MaxValue、Previous 全設 Cell.None、Done 全設 false。</summary>
         private void Reset()
         {
             DoneCount = 0;
+            Current = Cell.None;
+            IsFinished = false;
+            IsFound = false;
 
             // TODO 3-1：兩層 for 掃過全部格子（和 W4 反應擴散一樣），設定三個陣列的初始值
         }
