@@ -17,3 +17,10 @@
 1. 在 `src/` 撰寫演算法類別。
 2. 把 `gh_script/` 內的檔案內容貼到 GH C# Script Component。
 3. `#load` 路徑行為見 `docs/loading.md`（尚待實測）。
+
+## 課堂分支
+
+| 分支 | 說明 |
+| --- | --- |
+| `1117-path-starter` | 11/17 Dijkstra × Boids starter，說明見 `docs/1117_路徑與Boids.md` |
+| `1117-path-solution` | 同上的參考解答 |
