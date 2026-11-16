@@ -44,6 +44,11 @@ def main() -> None:
     """每個含 //@LOADS@ 的樣板，各產生一份貼進 GH 用的檔到 ready。"""
     loads = load_lines()
     OUT.mkdir(exist_ok=True)
+
+    # 先清掉舊檔：ready 不進版控，切換分支後會留著別的分支產生的檔
+    for old in OUT.glob("*.cs"):
+        old.unlink()
+
     for template in sorted(TEMPLATES.glob("*.cs")):
         text = template.read_text(encoding="utf-8").replace("\r\n", "\n")
         if PLACEHOLDER not in text:
