@@ -5,11 +5,13 @@ namespace AlgoDesign
     /// <summary>
     /// 最基礎的 Dijkstra：4 鄰居，每次掃過全部格子找最近的那一格（不用優先佇列）。
     /// 只記兩句話：定案最便宜的，更新它的鄰居。
-    /// 參考解答（1117-path-solution 分支）：註解的 3-1 到 3-4 對應 starter 的 TODO。
+    /// 可以一次解完（Solve），也可以一步一步走（Begin 之後每呼叫一次 Step 定案一格）。
+    /// 參考解答（1117-finish 分支）：註解的 3-1 到 3-4 對應 starter 的 TODO。
     /// </summary>
     public class Dijkstra
     {
         private readonly Grid _grid;
+        private Cell _goal = Cell.None;
 
         /// <summary>從起點走到每一格的最小成本；還走不到的是 double.MaxValue。</summary>
         public double[,] Distance { get; }
@@ -23,6 +25,15 @@ namespace AlgoDesign
         /// <summary>總共定案了幾格（之後拿來和 A* 比較誰找得比較少）。</summary>
         public int DoneCount { get; private set; }
 
+        /// <summary>最近一次 Step 定案的格子；還沒走過是 Cell.None。</summary>
+        public Cell Current { get; private set; } = Cell.None;
+
+        /// <summary>結束了沒：終點已定案，或剩下的格子都走不到。</summary>
+        public bool IsFinished { get; private set; }
+
+        /// <summary>找到路了沒（終點已定案）。</summary>
+        public bool IsFound { get; private set; }
+
         public Dijkstra(Grid grid)
         {
             _grid = grid;
@@ -31,43 +42,77 @@ namespace AlgoDesign
             Done = new bool[grid.Width, grid.Height];
         }
 
-        /// <summary>從 start 開始擴散，直到 goal 定案。走得到回傳 true。</summary>
+        /// <summary>一次解完：Begin 之後一直 Step 到結束。走得到回傳 true。</summary>
         public bool Solve(Cell start, Cell goal)
         {
+            Begin(start, goal);
+            while (Step())
+            {
+            }
+            return IsFound;
+        }
+
+        /// <summary>準備開始：清空三張表，起點的成本設 0。之後每呼叫一次 Step 走一步。</summary>
+        public void Begin(Cell start, Cell goal)
+        {
             Reset();
-            if (!_grid.IsWalkable(start) || !_grid.IsWalkable(goal)) return false;
+            _goal = goal;
+            if (!_grid.IsWalkable(start) || !_grid.IsWalkable(goal))
+            {
+                IsFinished = true;
+                return;
+            }
 
             // 3-1：起點的成本是 0
             Distance[start.X, start.Y] = 0;
-
-            while (TryPickNearest(out Cell current))
-            {
-                // 3-2 第一句：定案最便宜的
-                Done[current.X, current.Y] = true;
-                DoneCount++;
-                if (current.IsSame(goal)) return true;
-
-                // 3-3 第二句：更新它的鄰居
-                foreach (Cell next in _grid.Neighbors4(current))
-                {
-                    if (Done[next.X, next.Y]) continue;
-
-                    double newDistance = Distance[current.X, current.Y] + _grid.Cost[next.X, next.Y];
-                    if (newDistance < Distance[next.X, next.Y])
-                    {
-                        Distance[next.X, next.Y] = newDistance;
-                        Previous[next.X, next.Y] = current;
-                    }
-                }
-            }
-
-            return false;
         }
 
-        /// <summary>每次 Solve 前清空：Distance 全設 double.MaxValue、Previous 全設 Cell.None、Done 全設 false。</summary>
+        /// <summary>
+        /// 走一步＝兩句話各做一次：定案最便宜的一格，再更新它的鄰居。
+        /// 還能繼續回傳 true；找到終點或沒有格子可以定案了，回傳 false。
+        /// </summary>
+        public bool Step()
+        {
+            if (IsFinished) return false;
+
+            // 3-2 第一句：定案最便宜的
+            if (!TryPickNearest(out Cell current))
+            {
+                IsFinished = true;
+                return false;
+            }
+            Done[current.X, current.Y] = true;
+            DoneCount++;
+            Current = current;
+            if (current.IsSame(_goal))
+            {
+                IsFound = true;
+                IsFinished = true;
+                return false;
+            }
+
+            // 3-3 第二句：更新它的鄰居
+            foreach (Cell next in _grid.Neighbors4(current))
+            {
+                if (Done[next.X, next.Y]) continue;
+
+                double newDistance = Distance[current.X, current.Y] + _grid.Cost[next.X, next.Y];
+                if (newDistance < Distance[next.X, next.Y])
+                {
+                    Distance[next.X, next.Y] = newDistance;
+                    Previous[next.X, next.Y] = current;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>每次 Begin 前清空：Distance 全設 double.MaxValue、Previous 全設 Cell.None、Done 全設 false。</summary>
         private void Reset()
         {
             DoneCount = 0;
+            Current = Cell.None;
+            IsFinished = false;
+            IsFound = false;
 
             // 3-1：兩層 for 掃過全部格子，設定三個陣列的初始值
             for (int x = 0; x < _grid.Width; x++)
