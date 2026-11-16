@@ -70,6 +70,50 @@ namespace AlgoDesign
             return neighbors;
         }
 
+        /// <summary>
+        /// V1：八個鄰居中能走的那幾格（四個正向 ＋ 四個斜向）。
+        /// 斜向時，旁邊兩個正向格子都要能走，才不會從兩個障礙的牆角縫鑽過去。
+        /// </summary>
+        public List<Cell> Neighbors8(Cell cell)
+        {
+            List<Cell> neighbors = Neighbors4(cell);
+            for (int dx = -1; dx <= 1; dx += 2)
+            {
+                for (int dy = -1; dy <= 1; dy += 2)
+                {
+                    var diagonal = new Cell(cell.X + dx, cell.Y + dy);
+                    bool isSideXOpen = IsWalkable(new Cell(cell.X + dx, cell.Y));
+                    bool isSideYOpen = IsWalkable(new Cell(cell.X, cell.Y + dy));
+                    if (IsWalkable(diagonal) && isSideXOpen && isSideYOpen) neighbors.Add(diagonal);
+                }
+            }
+            return neighbors;
+        }
+
+        /// <summary>
+        /// 從 from 走進相鄰的 to 要花多少：to 的成本，斜向再乘 √2（斜走的距離比較長）。
+        /// </summary>
+        public double StepCost(Cell from, Cell to)
+        {
+            bool isDiagonal = from.X != to.X && from.Y != to.Y;
+            double cost = Cost[to.X, to.Y];
+            return isDiagonal ? cost * Math.Sqrt(2.0) : cost;
+        }
+
+        /// <summary>能走的格子裡最小的成本；A* 的猜測要乘上它，才保證不會高估。</summary>
+        public double MinWalkableCost()
+        {
+            double minCost = double.MaxValue;
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    if (!Blocked[x, y] && Cost[x, y] < minCost) minCost = Cost[x, y];
+                }
+            }
+            return minCost == double.MaxValue ? 0.0 : minCost;
+        }
+
         /// <summary>一格的中心點（Rhino 座標）。</summary>
         public Point3d CellCenter(Cell cell)
         {
