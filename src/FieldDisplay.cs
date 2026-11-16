@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Drawing;
 using Rhino.Geometry;
 
@@ -16,7 +16,7 @@ namespace AlgoDesign
         /// <summary>每格一個四邊形面，依 values 上色。</summary>
         public static Mesh BuildMesh(Grid grid, double[,] values)
         {
-            double maxValue = FindMaxReached(grid, values);
+            FindReachedRange(grid, values, out double minValue, out double maxValue);
             var mesh = new Mesh();
 
             for (int x = 0; x < grid.Width; x++)
@@ -25,7 +25,7 @@ namespace AlgoDesign
                 {
                     AddCellFace(mesh, grid, x, y);
 
-                    Color color = PickColor(grid.Blocked[x, y], values[x, y], maxValue);
+                    Color color = PickColor(grid.Blocked[x, y], values[x, y], minValue, maxValue);
                     for (int corner = 0; corner < 4; corner++)
                     {
                         mesh.VertexColors.Add(color);
@@ -37,19 +37,29 @@ namespace AlgoDesign
             return mesh;
         }
 
-        /// <summary>走得到的格子裡最大的值，上色時用來換算比例。</summary>
-        private static double FindMaxReached(Grid grid, double[,] values)
+        /// <summary>
+        /// 沒擋住、走得到的格子裡最小與最大的值，上色時用來換算比例。
+        /// 距離場最小是 0；成本場（V4）最小是 1，用最小到最大換算，顏色才拉得開。
+        /// </summary>
+        private static void FindReachedRange(Grid grid, double[,] values, out double minValue, out double maxValue)
         {
-            double maxValue = 0;
+            minValue = double.MaxValue;
+            maxValue = double.MinValue;
             for (int x = 0; x < grid.Width; x++)
             {
                 for (int y = 0; y < grid.Height; y++)
                 {
                     double value = values[x, y];
-                    if (value != double.MaxValue && value > maxValue) maxValue = value;
+                    if (grid.Blocked[x, y] || value == double.MaxValue) continue;
+                    if (value < minValue) minValue = value;
+                    if (value > maxValue) maxValue = value;
                 }
             }
-            return maxValue;
+            if (minValue > maxValue)
+            {
+                minValue = 0;
+                maxValue = 0;
+            }
         }
 
         /// <summary>加一格的四個角點與一個四邊形面。</summary>
@@ -69,12 +79,14 @@ namespace AlgoDesign
         }
 
         /// <summary>擋住→深灰、走不到→白、其他依比例由藍到紅。</summary>
-        private static Color PickColor(bool isBlocked, double value, double maxValue)
+        private static Color PickColor(bool isBlocked, double value, double minValue, double maxValue)
         {
             if (isBlocked) return _blockedColor;
             if (value == double.MaxValue) return _unreachedColor;
 
-            double ratio = maxValue > 0 ? value / maxValue : 0;
+            double range = maxValue - minValue;
+            double ratio = range > 0 ? (value - minValue) / range : 0;
+            ratio = Math.Max(0.0, Math.Min(1.0, ratio));
             int red = (int)(255 * ratio);
             int blue = 255 - red;
             return Color.FromArgb(red, 60, blue);
