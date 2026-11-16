@@ -8,3 +8,9 @@ obj/
 *.rhl
 *.gh.bak
 *.ghx.bak
+
+# Python 虛擬環境
+.venv/
+
+
+*.gh
