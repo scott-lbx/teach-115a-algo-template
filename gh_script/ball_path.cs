@@ -1,13 +1,5 @@
+//@LOADS@
 // Grasshopper Script Instance
-#load "..\src\Cell.cs"
-#load "..\src\Grid.cs"
-#load "..\src\Dijkstra.cs"
-#load "..\src\FieldDisplay.cs"
-#load "..\src\Ball.cs"
-#load "..\src\Boid.cs"
-#load "..\src\Flock.cs"
-#load "..\src\ObstacleBuilder.cs"
-#load "..\src\Greeter.cs"
 // 1117 搜尋與路徑規劃｜Part 3：一顆球沿路徑走
 // path 接 path_dijkstra（或 Part 4 的 path_search）輸出的路徑；按 reset 回到起點，run 接 Timer 讓球往前走
 // 輸入輸出的名稱、型別、順序見 docs/1117_路徑與Boids.md
