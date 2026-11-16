@@ -24,14 +24,16 @@ python tools\gen_gh_scripts.py
 
 | 檔案 | 內容 | 今天要改嗎 |
 | --- | --- | --- |
-| `src/Cell.cs` | 一格的整數座標 (X, Y)，struct | 不用 |
-| `src/Grid.cs` | 格子：`Cost`、`Blocked`、`Neighbors4()`、座標換算、用封閉曲線擋格子 | 不用，先讀懂 |
-| `src/Dijkstra.cs` | Dijkstra 本體 | **要，TODO 3-1 到 3-4** |
-| `src/FieldDisplay.cs` | 把距離場畫成上色網格 | 不用 |
+| `src/Edge.cs` | 圖上的一條邊：通到哪個節點、花多少（struct） | 不用 |
+| `src/Graph.cs` | 圖：節點（編號＋位置）、每個節點的鄰接清單、找最近的節點 | 不用，先讀懂 |
+| `src/MeshGraph.cs` | GH Mesh → 圖：頂點是節點、Mesh 的邊是邊、權重是邊長 | 不用 |
+| `src/Dijkstra.cs` | Dijkstra 本體（在圖上找路） | **要，TODO 3-1 到 3-4** |
+| `src/ValueColor.cs`、`src/GraphDisplay.cs` | 依距離幫 Mesh 上色 | 不用 |
 | `src/Ball.cs` | 一顆球沿路徑走，把找到的路「走出來」 | 不用 |
 | `src/Boid.cs`、`src/Flock.cs` | 沿用 11/03 的 Boids，多了規則 5「跟隨路徑」 | 不用（課程最後老師展示） |
 | `src/ObstacleBuilder.cs` | 障礙曲線轉成實心 Brep，給 Boids 閃避 | 不用 |
-| `gh_script/path_dijkstra.cs` | Part 3：格子 ＋ Dijkstra 找路 | 不用 |
+| `src/*Host.cs` | 每個 GH 元件的本體（狀態、輸出、`out` 文字），GH script 只把輸入輸出接過來 | 不用 |
+| `gh_script/path_dijkstra.cs` | Part 3：Mesh → 圖 → Dijkstra 找路 | 不用 |
 | `gh_script/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
 | `gh_script/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
 | `tools/gen_gh_scripts.py` | 產生貼進 GH 用的檔到 `gh_script/ready/` | 不用，執行它 |
@@ -45,24 +47,20 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 3. 在 VS Code 改 `src/` 的檔案、存檔後，回 GH 打開元件編輯器按綠色執行鈕。GH 不會自動重新編譯。
 4. repo 搬位置、換電腦、`src/` 增減檔案之後，重跑步驟 1，再重新貼一次。
 
-樣板的開頭：`//@LOADS@`，接著和 GH 新建 C# 元件的範本相同：`// Grasshopper Script Instance`、`#region Usings`（多一行 `using AlgoDesign;`）、`Script_Instance` 類別與 `Notes` 區塊。
+樣板越精簡越好：`//@LOADS@`、`// Grasshopper Script Instance`、幾行 `using`，以及 `Script_Instance` 裡一個 `RunScript`：把輸入交給 `src/` 的 `…Host`，再把它的結果接到輸出。邏輯都在 `src/`，改程式只改 `src/`，GH 裡貼的東西不用動。
 
-### Part 3｜`path_dijkstra.cs`：找路
+### Part 3｜`path_dijkstra.cs`：Mesh → 圖 → 找路
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
-| 0 | origin | Point3d | Item | (0,0,0) |
-| 1 | width | int | Item | 40 |
-| 2 | height | int | Item | 40 |
-| 3 | cellSize | double | Item | 1 |
-| 4 | obstacles | Curve | List | Rhino 畫的封閉曲線（可不接） |
-| 5 | start | Point3d | Item | (1,1,0) |
-| 6 | goal | Point3d | Item | (38,38,0) |
-| 7 | reset | bool | Item | Button（從頭開始） |
-| 8 | step | bool | Item | Button：按一下走一次；或 Boolean Toggle ＋ Timer：自己一直走 |
-| 9 | steps | int | Item | 1（每觸發一次定案幾格；格子大時調大） |
+| 0 | mesh | Mesh | Item | GH 的 Mesh Plane（例如 20×20 格）、地形 Mesh；挖掉的面就是障礙 |
+| 1 | start | Point3d | Item | 起點（會吸到最近的頂點） |
+| 2 | goal | Point3d | Item | 終點（會吸到最近的頂點） |
+| 3 | reset | bool | Item | Button（從頭開始） |
+| 4 | step | bool | Item | Button：按一下走一次；或 Boolean Toggle ＋ Timer：自己一直走 |
+| 5 | steps | int | Item | 1（每觸發一次定案幾個節點；Mesh 大時調大） |
 
-輸出：`path`（找到才有的 Polyline）、`field`（距離場上色 Mesh）、`current`（剛定案那格的中心點）、`frontier`（邊界：已經有距離、還沒定案的格子中心點）。`out` 會印出已定案格數、邊界格數、剛定案的格子與距離、狀態（進行中／找到路／找不到路）、曼哈頓距離。格子、障礙、起終點改了會自動從頭開始。
+輸出：`path`（找到才有的 Polyline）、`field`（依距離上色的 Mesh）、`current`（剛定案的節點）、`frontier`（邊界：已經有距離、還沒定案的節點）。`out` 會印出節點數、邊數、已定案與邊界的個數、剛定案的節點與距離、狀態（進行中／找到路／找不到路）、起終點的直線距離。Mesh 或起終點改了會自動從頭開始。
 
 ### Part 3｜`ball_path.cs`：一顆球沿路徑走
 
@@ -108,10 +106,12 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 
 | 情況 | 應該看到 |
 | --- | --- |
-| 不接障礙、成本全 1 | 總成本 ＝ 曼哈頓距離；路徑格數 ＝ 總成本 ＋ 1 |
-| 起點與終點對調 | 總成本不變 |
-| 終點被障礙圍住 | 印出「找不到路」，沒有路徑 |
-| `field` 網格 | 起點附近藍、越遠越紅、擋住的深灰、沒擴散到的白 |
+| Mesh Plane（四邊形面、沒有挖洞），間距 s | 總長 ＝ （橫向格數＋縱向格數）× s，也就是曼哈頓距離 × s |
+| 同一個 Mesh 改成三角面（Triangulate） | 總長變短：可以走對角線 |
+| 起點與終點對調 | 總長不變 |
+| 任何情況 | 總長 ≥ `out` 印的直線距離 |
+| 終點被挖洞的面圍成孤島 | 印出「找不到路」，沒有路徑 |
+| `field` Mesh | 起點附近藍、越遠越紅、沒擴散到的白 |
 | 球 | 從起點沿路走到終點停下，`out` 印出「到終點了」 |
 
 ## TODO 與課堂步驟對照
@@ -123,7 +123,9 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 | 3-3 | `Step()` 後半，最後改成 `return true;` | 第二句：更新它的鄰居 |
 | 3-4 | `BuildPath()` | 從終點沿 `Previous` 走回起點 |
 
-`Step()` 一次＝兩句話各做一次＝定案一格。`Solve()` 只是 `Begin()` 之後一直 `Step()` 到結束，所以在 GH 按一次 step 看到的，就是迴圈跑一圈。寫完一段就按 step 看效果：3-1 寫完，`field` 只剩起點有顏色；3-2、3-3 寫完，每按一次多定案一格。
+`Step()` 一次＝兩句話各做一次＝定案一個節點。`Solve()` 只是 `Begin()` 之後一直 `Step()` 到結束，所以在 GH 按一次 step 看到的，就是迴圈跑一圈。寫完一段就按 step 看效果：3-1 寫完，`field` 只剩起點有顏色；3-2、3-3 寫完，每按一次多定案一個節點。
+
+節點用編號 0、1、2… 表示，三張表都是一維陣列：`Distance[node]`、`Previous[node]`、`Done[node]`；鄰居用 `_graph.Neighbors(node)` 拿，每條邊有 `To`（通到哪）和 `Weight`（花多少）。
 
 ## 之後的變化（Part 4，用 AI，先開 branch）
 

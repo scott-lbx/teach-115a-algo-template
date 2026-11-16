@@ -5,7 +5,7 @@ namespace AlgoDesign
 {
     /// <summary>
     /// 把平面上的封閉曲線變成 Boids 用的實心障礙（Brep）。
-    /// 同一組曲線，Grid 拿來擋格子、Boids 拿來閃避，兩邊看到的障礙一致。
+    /// 同一組曲線可以同時給找路（擋格子）與 Boids（閃避）用，兩邊看到的障礙一致。
     /// </summary>
     public static class ObstacleBuilder
     {

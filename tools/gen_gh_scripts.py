@@ -22,11 +22,13 @@ TEMPLATES = ROOT / "gh_script"
 OUT = TEMPLATES / "ready"
 PLACEHOLDER = "//@LOADS@"
 
-# 有相依的放前面；清單外的檔依檔名排在最後
+# 有相依的放前面；清單外的檔（各元件的 *Host）依檔名排在最後
 ORDER = [
-    "Cell", "Grid", "Dijkstra",
-    "CellHeap", "PathSearch", "CostField",
-    "FieldDisplay", "FlowField", "Ball",
+    "Cell", "Grid", "Edge",
+    "Graph", "MeshGraph", "GridGraph",
+    "Dijkstra", "CellHeap", "PathSearch",
+    "CostField", "ValueColor", "FieldDisplay",
+    "GraphDisplay", "FlowField", "Ball",
     "Boid", "Flock",
     "ObstacleBuilder", "Greeter",
 ]
