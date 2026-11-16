@@ -53,9 +53,9 @@ python tools\gen_gh_scripts.py
 | `src/Grid.cs` | 多了 `Neighbors8`（不切牆角）、`StepCost`（斜向 ×√2）、`MinWalkableCost` |
 | `src/Ball.cs` | 多了 `MoveInDirection`：照距離場的箭頭走 |
 | `src/Boid.cs`、`src/Flock.cs` | 多了規則 6 `FollowField` |
-| `gh_script/path_search.cs` | Part 4 V1～V4：同場景對照基礎版並印出驗證；`path` 接 `ball_path` 讓球跑 |
-| `gh_script/ball_field.cs` | Part 4 V5：距離場 ＋ 一顆球從任何起點照箭頭走 |
-| `gh_script/field_boids.cs` | Part 5（課程最後）方法 B：Boids 距離場導航 |
+| `src/gh_templates/path_search.cs` | Part 4 V1～V4：同場景對照基礎版並印出驗證；`path` 接 `ball_path` 讓球跑 |
+| `src/gh_templates/ball_field.cs` | Part 4 V5：距離場 ＋ 一顆球從任何起點照箭頭走 |
+| `src/gh_templates/field_boids.cs` | Part 5（課程最後）方法 B：Boids 距離場導航 |
 
 ## 在 GH 組起來
 
