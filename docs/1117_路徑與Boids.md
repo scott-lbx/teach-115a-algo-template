@@ -32,20 +32,22 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | `src/Grid.cs` | 格子：`Cost`、`Blocked`、`Neighbors4()`、座標換算、用封閉曲線擋格子 | 不用，先讀懂 |
 | `src/Dijkstra.cs` | Dijkstra 本體 | **要，TODO 3-1 到 3-4** |
 | `src/FieldDisplay.cs` | 把距離場畫成上色網格 | 不用 |
-| `src/Boid.cs`、`src/Flock.cs` | 沿用 11/03 的 Boids，多了規則 5「跟隨路徑」 | 不用（Part 5 老師展示） |
+| `src/Ball.cs` | 一顆球沿路徑走，把找到的路「走出來」 | 不用 |
+| `src/Boid.cs`、`src/Flock.cs` | 沿用 11/03 的 Boids，多了規則 5「跟隨路徑」 | 不用（課程最後老師展示） |
 | `src/ObstacleBuilder.cs` | 障礙曲線轉成實心 Brep，給 Boids 閃避 | 不用 |
-| `gh_script/path_dijkstra.cs` | 元件 1：格子 ＋ Dijkstra | 不用 |
-| `gh_script/path_boids.cs` | 元件 2：Boids 沿路徑飛 | 不用 |
+| `gh_script/path_dijkstra.cs` | Part 3：格子 ＋ Dijkstra 找路 | 不用 |
+| `gh_script/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
+| `gh_script/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
 
 ## 在 GH 組起來
 
 1. 新的 .gh 檔**存在 `gh_script/` 資料夾裡**（`#load "..\src\..."` 的相對路徑以這個位置為準）。
-2. 放兩個 C# Script 元件，依下表加輸入輸出，把對應的 `gh_script/*.cs` 全部貼進去。
+2. 依課程進度放 C# Script 元件，依下表加輸入輸出，把對應的 `gh_script/*.cs` 全部貼進去。先做 `path_dijkstra` 與 `ball_path`，Boids 留到最後。
 3. 在 VS Code 改 `src/` 的檔案、存檔，回 GH 讓元件重新運算。
 
 > 相對路徑不能用時，把 `#load` 改成絕對路徑，例如 `#load "C:\Users\你\Desktop\115a_algo\src\Grid.cs"`。結果記到 `docs/loading.md`。
 
-### 元件 1：`path_dijkstra.cs`
+### Part 3｜`path_dijkstra.cs`：找路
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
@@ -59,12 +61,24 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 
 輸出：`path`（Polyline）、`field`（上色 Mesh）。`out` 會印出總成本、路徑格數、定案格數、曼哈頓距離。
 
-### 元件 2：`path_boids.cs`
+### Part 3｜`ball_path.cs`：一顆球沿路徑走
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
-| 0 | path | Curve | Item | 接元件 1 的 `path` |
-| 1 | obstacles | Curve | List | 和元件 1 同一組曲線 |
+| 0 | path | Curve | Item | 接 `path_dijkstra` 的 `path` |
+| 1 | speed | double | Item | 0.3（每步沿路走多長） |
+| 2 | radius | double | Item | 0.5 |
+| 3 | reset | bool | Item | Button（球回到起點） |
+| 4 | run | bool | Item | Boolean Toggle ＋ Timer |
+
+輸出：`ball`（Sphere）、`trail`（走過的軌跡 Polyline）。改了障礙或起終點，路徑會變，按 `reset` 讓球從新起點出發。
+
+### Part 5（課程最後）｜`path_boids.cs`：Boids 沿路徑飛
+
+| 索引 | 名稱 | 型別 | 存取 | 建議值 |
+| --- | --- | --- | --- | --- |
+| 0 | path | Curve | Item | 接 `path_dijkstra` 的 `path` |
+| 1 | obstacles | Curve | List | 和 `path_dijkstra` 同一組曲線 |
 | 2 | min | Point3d | Item | (0,0,0) |
 | 3 | max | Point3d | Item | (40,40,0)（Z 和 min 相同 → 只在平面上飛） |
 | 4 | boidCount | int | Item | 40 |
@@ -95,6 +109,7 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 | 起點與終點對調 | 總成本不變 |
 | 終點被障礙圍住 | 印出「找不到路」，沒有路徑 |
 | `field` 網格 | 起點附近藍、越遠越紅、擋住的深灰、沒擴散到的白 |
+| 球 | 從起點沿路走到終點停下，`out` 印出「到終點了」 |
 
 ## TODO 與課堂步驟對照
 
@@ -107,4 +122,4 @@ git checkout origin/1117-path-solution -- src/Dijkstra.cs
 
 ## 之後的變化（Part 4，用 AI，先開 branch）
 
-V1 8 鄰居 → V2 優先佇列加速（100×100 線性掃描約 1 秒，可以計時比較）→ V3 A\* → V4 成本場 → V5 距離場。每一版都要用上表的基準驗證。
+V1 8 鄰居 → V2 優先佇列加速（100×100 線性掃描約 1 秒，可以計時比較）→ V3 A\* → V4 成本場 → V5 距離場。每一版都讓球重新跑一次，並用上表的基準驗證。Boids 放在課程最後。
