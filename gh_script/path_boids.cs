@@ -1,3 +1,8 @@
+#load "..\src\Cell.cs"
+#load "..\src\Grid.cs"
+#load "..\src\CellHeap.cs"
+#load "..\src\PathSearch.cs"
+#load "..\src\FlowField.cs"
 #load "..\src\Boid.cs"
 #load "..\src\Flock.cs"
 #load "..\src\ObstacleBuilder.cs"
