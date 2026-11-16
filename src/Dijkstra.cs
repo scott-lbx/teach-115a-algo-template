@@ -5,7 +5,7 @@ namespace AlgoDesign
     /// <summary>
     /// 最基礎的 Dijkstra：4 鄰居，每次掃過全部格子找最近的那一格（不用優先佇列）。
     /// 只記兩句話：定案最便宜的，更新它的鄰居。
-    /// 今天要親手完成標 TODO 的地方（3-1 到 3-4），不用 AI。
+    /// 參考解答（1117-path-solution 分支）：註解的 3-1 到 3-4 對應 starter 的 TODO。
     /// </summary>
     public class Dijkstra
     {
@@ -37,20 +37,29 @@ namespace AlgoDesign
             Reset();
             if (!_grid.IsWalkable(start) || !_grid.IsWalkable(goal)) return false;
 
-            // TODO 3-1：起點的 Distance 設成 0
+            // 3-1：起點的成本是 0
+            Distance[start.X, start.Y] = 0;
 
-            // TODO 3-2、3-3：主迴圈（把下面的註解改成程式）
-            // while (TryPickNearest(out Cell current))
-            // {
-            //     第一句：定案 current → Done 設 true、DoneCount 加 1
-            //     current 就是 goal → return true
-            //
-            //     第二句：更新鄰居 → 對 _grid.Neighbors4(current) 的每一格 next：
-            //         next 已定案就跳過
-            //         newDistance = current 的 Distance ＋ next 的 Cost
-            //         newDistance 比 next 現在的 Distance 小 →
-            //             改寫 next 的 Distance，並記下 next 的 Previous = current
-            // }
+            while (TryPickNearest(out Cell current))
+            {
+                // 3-2 第一句：定案最便宜的
+                Done[current.X, current.Y] = true;
+                DoneCount++;
+                if (current.IsSame(goal)) return true;
+
+                // 3-3 第二句：更新它的鄰居
+                foreach (Cell next in _grid.Neighbors4(current))
+                {
+                    if (Done[next.X, next.Y]) continue;
+
+                    double newDistance = Distance[current.X, current.Y] + _grid.Cost[next.X, next.Y];
+                    if (newDistance < Distance[next.X, next.Y])
+                    {
+                        Distance[next.X, next.Y] = newDistance;
+                        Previous[next.X, next.Y] = current;
+                    }
+                }
+            }
 
             return false;
         }
@@ -60,7 +69,16 @@ namespace AlgoDesign
         {
             DoneCount = 0;
 
-            // TODO 3-1：兩層 for 掃過全部格子（和 W4 反應擴散一樣），設定三個陣列的初始值
+            // 3-1：兩層 for 掃過全部格子，設定三個陣列的初始值
+            for (int x = 0; x < _grid.Width; x++)
+            {
+                for (int y = 0; y < _grid.Height; y++)
+                {
+                    Distance[x, y] = double.MaxValue;
+                    Previous[x, y] = Cell.None;
+                    Done[x, y] = false;
+                }
+            }
         }
 
         /// <summary>
@@ -72,9 +90,19 @@ namespace AlgoDesign
             nearest = Cell.None;
             double smallest = double.MaxValue;
 
-            // TODO 3-2：兩層 for 掃過全部格子
-            //           跳過 Done 的格子
-            //           Distance 比 smallest 小 → 更新 smallest 與 nearest
+            // 3-2：兩層 for 掃過全部格子，跳過已定案的；還走不到的是 double.MaxValue，自然不會被選到
+            for (int x = 0; x < _grid.Width; x++)
+            {
+                for (int y = 0; y < _grid.Height; y++)
+                {
+                    if (Done[x, y]) continue;
+                    if (Distance[x, y] < smallest)
+                    {
+                        smallest = Distance[x, y];
+                        nearest = new Cell(x, y);
+                    }
+                }
+            }
 
             return !nearest.IsNone;
         }
@@ -88,8 +116,14 @@ namespace AlgoDesign
             var path = new List<Cell>();
             if (!_grid.IsInside(goal) || !Done[goal.X, goal.Y]) return path;
 
-            // TODO 3-4：從 goal 開始，加進 path，再換成它的 Previous，一直到 Cell.None 為止
-            //           最後 path.Reverse()，讓第一格是 start
+            // 3-4：從 goal 沿 Previous 往回走，起點的 Previous 是 Cell.None，走到它就停
+            Cell current = goal;
+            while (!current.IsNone)
+            {
+                path.Add(current);
+                current = Previous[current.X, current.Y];
+            }
+            path.Reverse();
 
             return path;
         }
