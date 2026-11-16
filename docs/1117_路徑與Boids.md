@@ -1,12 +1,12 @@
 # 1117 搜尋與路徑規劃：Dijkstra × Boids
 
-11/17 課堂用。Part 3 親手完成 `src/Dijkstra.cs` 裡標 `TODO` 的地方（3-1 到 3-4），不用 AI；Part 4、5 的完整版在 `1117-finish`。
+11/17 課堂用。Part 3 親手完成 `src/MeshDijkstra.cs` 裡標 `TODO` 的地方（3-1 到 3-4），不用 AI；本分支是完整版與解答。
 
 ## 分支
 
 | 分支 | 內容 |
 | --- | --- |
-| `1117-path-starter` | 今天的起點：`Dijkstra.cs` 只有骨架與 TODO，其他都能用 |
+| `1117-path-starter` | 今天的起點：`src/MeshDijkstra.cs`（留 TODO）與 `path_dijkstra` 樣板 |
 | `1117-finish` | 完整版：Dijkstra 解答、V1～V5（8 鄰居、優先佇列、A\*、成本場、距離場）、球照距離場走，以及課程最後的 Boids（下課後才上傳） |
 
 ## 取得今天的 starter
@@ -24,16 +24,12 @@ python tools\gen_gh_scripts.py
 
 | 檔案 | 內容 | 今天要改嗎 |
 | --- | --- | --- |
-| `src/Edge.cs` | 圖上的一條邊：通到哪個節點、花多少（struct） | 不用 |
-| `src/Graph.cs` | 圖：節點（編號＋位置）、每個節點的鄰接清單、找最近的節點 | 不用，先讀懂 |
-| `src/MeshGraph.cs` | GH Mesh → 圖：頂點是節點、Mesh 的邊是邊、權重是邊長 | 不用 |
-| `src/Dijkstra.cs` | Dijkstra 本體（在圖上找路） | **要，TODO 3-1 到 3-4** |
-| `src/ValueColor.cs`、`src/GraphDisplay.cs` | 依距離幫 Mesh 上色 | 不用 |
+| `src/MeshDijkstra.cs` | Part 3 的 Dijkstra（給初學者的最簡版）：鄰居直接問 Mesh、三張一維陣列、`Step()` 走一步 | **要，TODO 3-1 到 3-4** |
 | `src/Ball.cs` | 一顆球沿路徑走，把找到的路「走出來」 | 不用 |
 | `src/Boid.cs`、`src/Flock.cs` | 沿用 11/03 的 Boids，多了規則 5「跟隨路徑」 | 不用（課程最後老師展示） |
 | `src/ObstacleBuilder.cs` | 障礙曲線轉成實心 Brep，給 Boids 閃避 | 不用 |
-| `src/*Host.cs` | 每個 GH 元件的本體（狀態、輸出、`out` 文字），GH script 只把輸入輸出接過來 | 不用 |
-| `src/gh_templates/path_dijkstra.cs` | Part 3：Mesh → 圖 → Dijkstra 找路 | 不用 |
+| `src/*Host.cs` | 其他 GH 元件的本體（狀態、輸出、`out` 文字），GH script 只把輸入輸出接過來 | 不用 |
+| `src/gh_templates/path_dijkstra.cs` | Part 3：在 Mesh 上用 Dijkstra 找路 | 不用 |
 | `src/gh_templates/ball_path.cs` | Part 3：一顆球沿路徑走 | 不用 |
 | `src/gh_templates/path_boids.cs` | Part 5（課程最後）：Boids 沿路徑飛 | 不用 |
 | `tools/gen_gh_scripts.py` | 由樣板產生貼進 GH 用的檔到 `gh_script/` | 不用，執行它 |
@@ -44,7 +40,8 @@ python tools\gen_gh_scripts.py
 | 檔案 | 內容 |
 | --- | --- |
 | `src/Cell.cs`、`src/Grid.cs` | Part 4 的格子：`Cost`、`Blocked`、鄰居、座標換算、用封閉曲線擋格子 |
-| `src/GridGraph.cs` | 格子 → 圖，讓基礎版 Dijkstra 和格子版 PathSearch 對照 |
+| `src/Edge.cs`、`src/Graph.cs`、`src/Dijkstra.cs`、`src/GridGraph.cs` | Part 4 對照用：格子轉成圖，跑基礎版 Dijkstra，和格子版 PathSearch 比成本與速度 |
+| `src/ValueColor.cs` | 上色共用的配色 |
 | `src/FieldDisplay.cs` | 格子上的數值畫成上色網格 |
 | `src/CellHeap.cs` | V2 優先佇列（最小堆積）；自己寫，不依賴 .NET 版本 |
 | `src/PathSearch.cs` | V1 8 鄰居、V2 優先佇列、V3 A\*；`SolveAll` 給距離場用 |
@@ -68,18 +65,17 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 
 樣板越精簡越好：`//@LOADS@`、`// Grasshopper Script Instance`、幾行 `using`，以及 `Script_Instance` 裡一個 `RunScript`：把輸入交給 `src/` 的 `…Host`，再把它的結果接到輸出。邏輯都在 `src/`，改程式只改 `src/`，GH 裡貼的東西不用動。
 
-### Part 3｜`path_dijkstra.cs`：Mesh → 圖 → 找路
+### Part 3｜`path_dijkstra.cs`：在 Mesh 上找路
 
 | 索引 | 名稱 | 型別 | 存取 | 建議值 |
 | --- | --- | --- | --- | --- |
-| 0 | mesh | Mesh | Item | GH 的 Mesh Plane（例如 20×20 格）、地形 Mesh；挖掉的面就是障礙 |
+| 0 | mesh | Mesh | Item | GH 的 Mesh Plane（例如 10×10 格）；挖掉的面就是障礙 |
 | 1 | start | Point3d | Item | 起點（會吸到最近的頂點） |
 | 2 | goal | Point3d | Item | 終點（會吸到最近的頂點） |
-| 3 | reset | bool | Item | Button（從頭開始） |
-| 4 | step | bool | Item | Button：按一下走一次；或 Boolean Toggle ＋ Timer：自己一直走 |
-| 5 | steps | int | Item | 1（每觸發一次定案幾個節點；Mesh 大時調大） |
+| 3 | reset | bool | Item | Button：從頭開始。**換了 Mesh 或起終點要按一次** |
+| 4 | step | bool | Item | Button：按一下走一步；或 Boolean Toggle ＋ Timer：自己一直走 |
 
-輸出：`path`（找到才有的 Polyline）、`field`（依距離上色的 Mesh）、`current`（剛定案的節點）、`frontier`（邊界：已經有距離、還沒定案的節點）。`out` 會印出節點數、邊數、已定案與邊界的個數、剛定案的節點與距離、狀態（進行中／找到路／找不到路）、起終點的直線距離。Mesh 或起終點改了會自動從頭開始。
+輸出：`path`（找到才有的 Polyline）、`visited`（已經定案的頂點）、`current`（剛定案的頂點）。`out` 會印出頂點數、起終點編號、已定案幾個、狀態（進行中／找到路／找不到路）與直線距離。
 
 ### Part 3｜`ball_path.cs`：一顆球沿路徑走
 
@@ -130,19 +126,19 @@ GH 的 `#load` **只吃絕對路徑**（相對路徑會什麼都沒載入，出�
 | 起點與終點對調 | 總長不變 |
 | 任何情況 | 總長 ≥ `out` 印的直線距離 |
 | 終點被挖洞的面圍成孤島 | 印出「找不到路」，沒有路徑 |
-| `field` Mesh | 起點附近藍、越遠越紅、沒擴散到的白 |
+| `visited` | 每按一次 step 多一個點，從起點一圈一圈往外長 |
 | 球 | 從起點沿路走到終點停下，`out` 印出「到終點了」 |
 
 ## TODO 與課堂步驟對照
 
 | TODO | 位置 | 對應的一句話 |
 | --- | --- | --- |
-| 3-1 | `Reset()`、`Begin()` | 初始化：全部「還走不到」，起點成本 0 |
-| 3-2 | `TryPickNearest()`、`Step()` 前半 | 第一句：定案最便宜的 |
+| 3-1 | 建構子 `MeshDijkstra(...)` | 初始化：全部「還走不到」，起點距離 0 |
+| 3-2 | `PickNearest()`、`Step()` 前半 | 第一句：定案最便宜的 |
 | 3-3 | `Step()` 後半 | 第二句：更新它的鄰居 |
-| 3-4 | `BuildPath()` | 從終點沿 `Previous` 走回起點 |
+| 3-4 | `Path()` | 從終點沿 `Previous` 走回起點 |
 
-`Step()` 一次＝兩句話各做一次＝定案一個節點。`Solve()` 只是 `Begin()` 之後一直 `Step()` 到結束，所以在 GH 按一次 step 看到的，就是迴圈跑一圈。節點用編號 0、1、2… 表示，三張表都是一維陣列：`Distance[node]`、`Previous[node]`、`Done[node]`；鄰居用 `_graph.Neighbors(node)` 拿，每條邊有 `To`（通到哪）和 `Weight`（花多少）。
+`Step()` 一次＝兩句話各做一次＝定案一個頂點。頂點用編號 0、1、2… 表示，三張表都是一維陣列：`Distance[v]`、`Previous[v]`、`Done[v]`；鄰居直接問 Mesh：`_mesh.TopologyVertices.ConnectedTopologyVertices(v)`，成本是兩點的距離。
 
 ## Part 4、5 完整版（`1117-finish`）
 
